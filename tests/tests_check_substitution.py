@@ -204,6 +204,106 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_true_four_var_quadratic_group_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "w"],
+                "y = (x + z) + w",
+                "x + z = w",
+                "y = w + w",
+            )
+        )
+
+    def test_true_four_var_fraction_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d"],
+                "a = b/c + d",
+                "c = 1/d",
+                "a = b*d + d",
+            )
+        )
+
+    def test_true_four_var_exp_shift_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["m", "n", "p", "q"],
+                "m = exp(n) + p + q",
+                "exp(n) = q",
+                "m = q + p + q",
+            )
+        )
+
+    def test_true_four_var_log_scale_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["u", "v", "w", "k"],
+                "u = 3*log(v*w) + k",
+                "log(v*w) = k",
+                "u = 3*k + k",
+            )
+        )
+
+    def test_true_four_var_trig_difference_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["r", "s", "t", "q"],
+                "r = sin(s) - t + q",
+                "sin(s) = t",
+                "r = t - t + q",
+            )
+        )
+
+    def test_true_four_var_abs_scaled_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "u"],
+                "y = 2*Abs(x - z) + u",
+                "x - z = u",
+                "y = 2*Abs(u) + u",
+            )
+        )
+
+    def test_true_four_var_linear_combination_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d"],
+                "d = 5*a - 2*b + c",
+                "5*a - 2*b = c",
+                "d = c + c",
+            )
+        )
+
+    def test_true_four_var_sqrt_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["p", "q", "r", "s"],
+                "p = sqrt(q + r) + s",
+                "q + r = s^2",
+                "p = sqrt(s^2) + s",
+            )
+        )
+
+    def test_true_four_var_hyperbolic_product_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "h"],
+                "y = z*cosh(x) + h",
+                "cosh(x) = h",
+                "y = z*h + h",
+            )
+        )
+
+    def test_true_four_var_reciprocal_shift_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["f", "g", "h", "k"],
+                "f = g + 1/h + k",
+                "h = 1/k",
+                "f = g + k + k",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
@@ -403,6 +503,106 @@ class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
                 "y = cosh(x) + z",
                 "cosh(x) = h",
                 "y = sinh(h) + z",
+            )
+        )
+
+    def test_false_four_var_quadratic_group_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "w"],
+                "y = (x + z)^2 + w",
+                "x + z = w",
+                "y = w + w",
+            )
+        )
+
+    def test_false_four_var_fraction_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "d"],
+                "a = b/c + d",
+                "c = 1/d",
+                "a = b/d + d",
+            )
+        )
+
+    def test_false_four_var_exp_shift_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["m", "n", "p", "q"],
+                "m = exp(n - p) + q",
+                "n - p = q",
+                "m = exp(q) - q",
+            )
+        )
+
+    def test_false_four_var_log_scale_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["u", "v", "w", "k"],
+                "u = 3*log(v*w) + k",
+                "log(v*w) = k",
+                "u = 3*k",
+            )
+        )
+
+    def test_false_four_var_trig_difference_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["r", "s", "t", "q"],
+                "r = sin(s) - t + q",
+                "sin(s) = t",
+                "r = t + q",
+            )
+        )
+
+    def test_false_four_var_abs_scaled_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "u"],
+                "y = 2*Abs(x - z) + u",
+                "x - z = u",
+                "y = 2*u + u",
+            )
+        )
+
+    def test_false_four_var_linear_combination_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "d"],
+                "d = 5*a - 2*b + c",
+                "5*a - 2*b = c",
+                "d = c",
+            )
+        )
+
+    def test_false_four_var_sqrt_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["p", "q", "r", "s"],
+                "p = sqrt(q + r) + s",
+                "q + r = s^2",
+                "p = s + s",
+            )
+        )
+
+    def test_false_four_var_hyperbolic_product_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "h"],
+                "y = z*cosh(x) + h",
+                "cosh(x) = h",
+                "y = z*sinh(h) + h",
+            )
+        )
+
+    def test_false_four_var_reciprocal_shift_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["f", "g", "h", "k"],
+                "f = g + 1/(h + k)",
+                "h + k = g",
+                "f = g + 1/(g + 1)",
             )
         )
 
