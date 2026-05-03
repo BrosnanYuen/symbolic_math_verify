@@ -304,6 +304,36 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_true_four_var_quadratic_group_substitution2(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "w"],
+                "y = (x + z)^2 + w",
+                "x + z = w",
+                "y = w^2 + w",
+            )
+        )
+
+    def test_true_four_var_quadratic_group_substitution3(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["m", "n", "p", "q"],
+                "m = exp(n - p) + q",
+                "n - p = q",
+                "m = exp(q) + q",
+            )
+        )
+
+    def test_true_four_var_reciprocal_shift_substitution4(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["f", "g", "h", "k"],
+                "f = g + 1/(h + k)",
+                "h + k = g",
+                "f = g + 1/g",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
