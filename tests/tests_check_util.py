@@ -184,6 +184,96 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
             )
         )
 
+    def test_six_var_linear_balance_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["a", "b", "c", "d", "e", "f"],
+                "a + 2*b - c + d - e + f = 0",
+                "a = -2*b + c - d + e - f",
+            )
+        )
+
+    def test_six_var_scaled_linear_relation(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["p", "q", "r", "s", "t", "u"],
+                "3*p - 6*q + 9*r - 12*s + 15*t - 18*u = 0",
+                "p - 2*q + 3*r - 4*s + 5*t - 6*u = 0",
+            )
+        )
+
+    def test_six_var_fraction_cross_multiply_sum(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z", "u", "v", "w"],
+                "(x + y + z)/u = v + w",
+                "x + y + z = u*(v + w)",
+            )
+        )
+
+    def test_six_var_bilinear_to_zero_form(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["A", "B", "C", "D", "E", "F"],
+                "A*B + C*D = E - F",
+                "A*B + C*D - E + F = 0",
+            )
+        )
+
+    def test_six_var_ratio_of_sums_cross_multiply(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["m", "n", "p", "q", "r", "s"],
+                "m/n = (p + q)/(r + s)",
+                "m*(r + s) = n*(p + q)",
+            )
+        )
+
+    def test_six_var_affine_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["h", "i", "j", "k", "l", "m"],
+                "2*h + 3*i - 4*j + 5*k - 6*l + 7*m = 8",
+                "7*m = 8 - 2*h - 3*i + 4*j - 5*k + 6*l",
+            )
+        )
+
+    def test_six_var_product_balance_zero_form(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["u1", "u2", "u3", "u4", "u5", "u6"],
+                "u1*u2*u3 = u4*u5*u6",
+                "u1*u2*u3 - u4*u5*u6 = 0",
+            )
+        )
+
+    def test_six_var_unicode_multiplication_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["F", "m", "a", "b", "c", "d"],
+                "F = m×a + b - c + d",
+                "F - m*a - b + c - d = 0",
+            )
+        )
+
+    def test_six_var_difference_sum_zero_form(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x1", "x2", "x3", "x4", "x5", "x6"],
+                "(x1 - x2) + (x3 - x4) = x5 - x6",
+                "x1 - x2 + x3 - x4 - x5 + x6 = 0",
+            )
+        )
+
+    def test_six_var_total_sum_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["g", "h", "i", "j", "k", "l"],
+                "g + h + i + j + k + l = 0",
+                "l = -g - h - i - j - k",
+            )
+        )
+
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
@@ -353,6 +443,96 @@ class TestIsEquationEqualFalseCases(unittest.TestCase):
                 ["x", "y", "z", "t"],
                 "x*y + x*z = x*(t + 1)",
                 "y + z = x + t + 1",
+            )
+        )
+
+    def test_six_var_linear_wrong_constant(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["a", "b", "c", "d", "e", "f"],
+                "a + b + c + d + e + f = 10",
+                "a + b + c + d + e + f = 11",
+            )
+        )
+
+    def test_six_var_linear_wrong_coefficient(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["p", "q", "r", "s", "t", "u"],
+                "2*p - q + r - s + t - u = 0",
+                "p - q + r - s + t - u = 0",
+            )
+        )
+
+    def test_six_var_fraction_wrong_cross_multiply(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z", "u", "v", "w"],
+                "(x + y + z)/u = v + w",
+                "x + y + z = u*v + w",
+            )
+        )
+
+    def test_six_var_bilinear_wrong_sign(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["A", "B", "C", "D", "E", "F"],
+                "A*B + C*D = E - F",
+                "A*B + C*D = E + F",
+            )
+        )
+
+    def test_six_var_product_missing_factor(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["m", "n", "p", "q", "r", "s"],
+                "m*n*p = q*r*s",
+                "m*n = q*r*s",
+            )
+        )
+
+    def test_six_var_affine_wrong_constant(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["h", "i", "j", "k", "l", "m"],
+                "2*h + 3*i - 4*j + 5*k - 6*l + 7*m = 8",
+                "2*h + 3*i - 4*j + 5*k - 6*l + 7*m = 9",
+            )
+        )
+
+    def test_six_var_sum_of_fractions_wrong_product(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["u1", "u2", "u3", "u4", "u5", "u6"],
+                "u1/u2 + u3/u4 = u5/u6",
+                "u1*u4 + u2*u3 = u5*u6",
+            )
+        )
+
+    def test_six_var_alternating_sum_wrong_last_sign(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["r1", "r2", "r3", "r4", "r5", "r6"],
+                "r1 - r2 + r3 - r4 + r5 - r6 = 0",
+                "r1 - r2 + r3 - r4 + r5 + r6 = 0",
+            )
+        )
+
+    def test_six_var_force_equation_wrong_d_term(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["F", "m", "a", "b", "c", "d"],
+                "F = m*a + b - c + d",
+                "F = m*a + b - c - d",
+            )
+        )
+
+    def test_six_var_product_vs_sum_not_equivalent(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x1", "x2", "x3", "x4", "x5", "x6"],
+                "x1*x2 + x3*x4 = x5*x6",
+                "x1 + x2 + x3 + x4 = x5*x6",
             )
         )
 
