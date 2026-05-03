@@ -116,8 +116,8 @@ def _parse_equation(equation: str, parse_locals: dict[str, object]) -> sp.Expr |
     return _canonical_residual(parsed_expr)  # Treat a plain expression as expression equals zero.
 
 
-def _parse_expression(expression: str, parse_locals: dict[str, object]) -> sp.Expr:  # Parse one mathematical expression string.
-    return parse_expr(expression, local_dict=parse_locals, transformations=_TRANSFORMATIONS, evaluate=True)  # Delegate parsing to SymPy.
+def _parse_expression(expression: str, parse_locals: dict[str, object], evaluate: bool = True) -> sp.Expr:  # Parse one mathematical expression string.
+    return parse_expr(expression, local_dict=parse_locals, transformations=_TRANSFORMATIONS, evaluate=evaluate)  # Delegate parsing to SymPy.
 
 
 def _canonical_residual(expression: sp.Expr) -> sp.Expr:  # Put a residual into a simpler standard form.

@@ -50,10 +50,10 @@ def _parse_substitution_sides(substitute_equation: str, parse_locals: dict[str, 
         left_text, right_text = normalized.split("=", 1)  # Split the substitution equation into left and right text.
         if not left_text.strip() or not right_text.strip():  # Reject substitutions missing either side of the equals sign.
             return None  # Signal that parsing failed.
-        return _parse_expression(left_text, parse_locals), _parse_expression(right_text, parse_locals)  # Return the parsed substitution sides.
+        return _parse_expression(left_text, parse_locals, evaluate=False), _parse_expression(right_text, parse_locals, evaluate=False)  # Return the parsed substitution sides.
     if normalized.count("=") > 1:  # Reject chained or malformed equality strings.
         return None  # Signal that parsing failed.
-    parsed_expr = _parse_expression(normalized, parse_locals)  # Parse strings without equals signs as expressions or Eq calls.
+    parsed_expr = _parse_expression(normalized, parse_locals, evaluate=False)  # Parse strings without equals signs as expressions or Eq calls.
     if isinstance(parsed_expr, Equality):  # Handle explicit Eq(lhs, rhs) substitution strings.
         return parsed_expr.lhs, parsed_expr.rhs  # Return the two sides of the Eq object.
     return parsed_expr, sp.Integer(0)  # Treat a plain expression as expression equals zero.
@@ -67,12 +67,12 @@ def _parse_equation_preserving_structure(equation: str, parse_locals: dict[str, 
         left_text, right_text = normalized.split("=", 1)  # Split the equation into left and right expressions.
         if not left_text.strip() or not right_text.strip():  # Reject equations missing either side of the equals sign.
             return None  # Signal that parsing failed.
-        left_expr = _parse_expression(left_text, parse_locals)  # Parse the left side as a SymPy expression.
-        right_expr = _parse_expression(right_text, parse_locals)  # Parse the right side as a SymPy expression.
+        left_expr = _parse_expression(left_text, parse_locals, evaluate=False)  # Parse the left side as a SymPy expression.
+        right_expr = _parse_expression(right_text, parse_locals, evaluate=False)  # Parse the right side as a SymPy expression.
         return left_expr - right_expr  # Avoid canonical expansion until after substitution matching.
     if normalized.count("=") > 1:  # Reject chained or malformed equality strings.
         return None  # Signal that parsing failed.
-    parsed_expr = _parse_expression(normalized, parse_locals)  # Parse strings without equals signs as expressions or Eq calls.
+    parsed_expr = _parse_expression(normalized, parse_locals, evaluate=False)  # Parse strings without equals signs as expressions or Eq calls.
     if isinstance(parsed_expr, Equality):  # Handle explicit Eq(lhs, rhs) expressions.
         return parsed_expr.lhs - parsed_expr.rhs  # Avoid canonical expansion until after substitution matching.
     return parsed_expr  # Treat a plain expression as expression equals zero.

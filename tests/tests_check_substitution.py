@@ -474,6 +474,16 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_true_five_var_affine_group_substitution6(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "q", "g"],
+                "q = 6*(a + b + c)^3 - g + d",
+                "a + b + c = g",
+                "q = 6*(g^3) - g + d",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
