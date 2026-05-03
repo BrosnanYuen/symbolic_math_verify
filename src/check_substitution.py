@@ -21,7 +21,7 @@ def is_substitution_correct(symbol_list: list[str], equation_before: str, substi
     try:  # Convert invalid inputs and unprovable cases into a False result.
         symbol_map = _build_symbol_map(symbol_list)  # Build SymPy Symbol objects from the caller's declared symbols.
         parse_locals = _build_parse_locals(symbol_map)  # Build the same parser namespace used by is_equation_equal.
-        before_residual = _parse_equation(equation_before, parse_locals)  # Parse the equation before substitution as a zero residual.
+        before_residual = _parse_equation_preserving_structure(equation_before, parse_locals)  # Parse before-equation without expanding away substitution targets.
         after_residual = _parse_equation(equation_after, parse_locals)  # Parse the claimed final equation as a zero residual.
         substitution_sides = _parse_substitution_sides(substitute_equation, parse_locals)  # Parse the substitution equation into replaceable sides.
         if before_residual is None or after_residual is None or substitution_sides is None:  # Reject malformed equations.
@@ -59,6 +59,25 @@ def _parse_substitution_sides(substitute_equation: str, parse_locals: dict[str, 
     return parsed_expr, sp.Integer(0)  # Treat a plain expression as expression equals zero.
 
 
+def _parse_equation_preserving_structure(equation: str, parse_locals: dict[str, object]) -> sp.Expr | None:  # Parse an equation while preserving nested substitution targets.
+    normalized = _normalize_equation_text(equation)  # Normalize Unicode operators and Python-style equality before parsing.
+    if not normalized:  # Reject empty equation strings.
+        return None  # Signal that parsing failed.
+    if normalized.count("=") == 1:  # Handle ordinary equation strings such as x + 1 = 2.
+        left_text, right_text = normalized.split("=", 1)  # Split the equation into left and right expressions.
+        if not left_text.strip() or not right_text.strip():  # Reject equations missing either side of the equals sign.
+            return None  # Signal that parsing failed.
+        left_expr = _parse_expression(left_text, parse_locals)  # Parse the left side as a SymPy expression.
+        right_expr = _parse_expression(right_text, parse_locals)  # Parse the right side as a SymPy expression.
+        return left_expr - right_expr  # Avoid canonical expansion until after substitution matching.
+    if normalized.count("=") > 1:  # Reject chained or malformed equality strings.
+        return None  # Signal that parsing failed.
+    parsed_expr = _parse_expression(normalized, parse_locals)  # Parse strings without equals signs as expressions or Eq calls.
+    if isinstance(parsed_expr, Equality):  # Handle explicit Eq(lhs, rhs) expressions.
+        return parsed_expr.lhs - parsed_expr.rhs  # Avoid canonical expansion until after substitution matching.
+    return parsed_expr  # Treat a plain expression as expression equals zero.
+
+
 def _candidate_substituted_residuals(before_residual: sp.Expr, substitution_left: sp.Expr, substitution_right: sp.Expr, substitution_residual: sp.Expr, symbols: list[sp.Symbol], symbol_list: list[str], substitute_equation: str) -> list[sp.Expr]:  # Build substituted residual candidates.
     direct_replacements = _direct_replacements(substitution_left, substitution_right)  # Build exact side-to-side replacement pairs first.
     direct_changed, direct_unchanged = _partition_replacement_candidates(before_residual, direct_replacements)  # Apply exact replacements to the before residual.
@@ -91,8 +110,9 @@ def _partition_replacement_candidates(before_residual: sp.Expr, replacements: li
     changed_candidates: list[sp.Expr] = []  # Store candidates where at least one replacement changed the before equation.
     unchanged_candidates: list[sp.Expr] = []  # Store no-op candidates for substitutions that do not occur in the before equation.
     for old_expression, new_expression in replacements:  # Try every possible replacement direction.
-        candidate = _apply_replacement(before_residual, old_expression, new_expression)  # Apply the replacement to the before residual.
-        if _same_structure(candidate, before_residual):  # Check whether the replacement had no structural effect.
+        raw_candidate = _apply_replacement(before_residual, old_expression, new_expression)  # Apply the replacement before canonicalizing.
+        candidate = _canonical_residual(raw_candidate)  # Normalize the substituted residual before comparison.
+        if _same_structure(raw_candidate, before_residual):  # Check whether the replacement had no structural effect.
             unchanged_candidates.append(candidate)  # Keep the no-op candidate only as a fallback.
         else:  # Handle replacements that actually changed the before residual.
             changed_candidates.append(candidate)  # Prefer changed candidates over no-op candidates.
@@ -160,8 +180,7 @@ def _unique_replacements(replacements: list[tuple[sp.Expr, sp.Expr]]) -> list[tu
 
 
 def _apply_replacement(before_residual: sp.Expr, old_expression: sp.Expr, new_expression: sp.Expr) -> sp.Expr:  # Apply one replacement to a residual.
-    substituted = before_residual.subs(old_expression, new_expression)  # Ask SymPy to replace matching subexpressions.
-    return _canonical_residual(substituted)  # Normalize the substituted residual before comparison.
+    return before_residual.subs(old_expression, new_expression)  # Ask SymPy to replace matching subexpressions.
 
 
 def _same_structure(lhs_expression: sp.Expr, rhs_expression: sp.Expr) -> bool:  # Compare two expressions by structural representation.
