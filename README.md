@@ -1,8 +1,13 @@
 # Symbolic Math Verify
 
-Utilities for checking whether two equation strings describe the same symbolic equation using SymPy.
+Utilities for checking symbolic equation equivalence and symbolic substitution correctness using SymPy.
 
-The main API is `is_equation_equal(symbol_list, lhs_equation, rhs_equation)` in `src/check_util.py`.
+The main APIs are:
+
+```python
+from src.check_util import is_equation_equal
+from src.check_substitution import is_substitution_correct
+```
 
 ## Setup
 
@@ -81,6 +86,50 @@ print(result)  # False
 
 `x^2 = 4` has two solutions, `x = 2` and `x = -2`, so it is not the same equation as `x = 2`.
 
+### `is_substitution_correct(symbol_list: list[str], equation_before: str, substitute_equation: str, equation_after: str) -> bool`
+
+Returns `True` when SymPy can prove that `equation_after` is a valid result of applying `substitute_equation` to `equation_before`.
+
+Returns `False` when the substitution is wrong, cannot be parsed, uses undeclared symbols, is ambiguous, or cannot be proven by the implemented checks.
+
+Import it with:
+
+```python
+from src.check_substitution import is_substitution_correct
+```
+
+Basic usage:
+
+```python
+from src.check_substitution import is_substitution_correct
+
+result = is_substitution_correct(
+    ["x", "y", "z"],
+    "y = 1/x  + 5*z",
+    "x  =  z^3",
+    "y = 1/(z^3)  + 5*z",
+)
+
+print(result)  # True
+```
+
+Wrong substitution example:
+
+```python
+from src.check_substitution import is_substitution_correct
+
+result = is_substitution_correct(
+    ["x", "y", "z"],
+    "y = 2*x + 5*z",
+    "x  =  z^3",
+    "y = z^3 + 5*z",
+)
+
+print(result)  # False
+```
+
+The second example is false because substituting `x = z^3` into `y = 2*x + 5*z` gives `y = 2*z^3 + 5*z`, not `y = z^3 + 5*z`.
+
 ## Arguments
 
 `symbol_list` must be a list of strings containing every symbol used by both equations.
@@ -97,7 +146,7 @@ Invalid or unsupported symbol names return `False` through the public API:
 ["1x", "R-C", ""]
 ```
 
-`lhs_equation` and `rhs_equation` must be strings. They may be ordinary equations:
+`lhs_equation`, `rhs_equation`, `equation_before`, `substitute_equation`, and `equation_after` must be strings. They may be ordinary equations:
 
 ```python
 "x + y = 10"
@@ -169,6 +218,27 @@ is_equation_equal(["x", "y"], "x*y = 0", "x = 0")  # False
 
 `x*y = 0` is not equivalent to `x = 0` because `y = 0` is also allowed.
 
+## How Substitution Is Checked
+
+The public substitution function:
+
+1. Builds SymPy symbols from `symbol_list`.
+2. Parses `equation_before`, `substitute_equation`, and `equation_after`.
+3. Converts equations into residual form, `left - right`.
+4. Checks that all equations use only declared symbols.
+5. Builds direct substitution candidates from both sides of `substitute_equation`.
+6. If direct replacement cannot change the before equation, tries safe linear solved substitutions.
+7. Compares each substituted candidate to `equation_after` using the equation-equivalence checker.
+8. Returns `True` only when one candidate proves the claimed substitution result.
+
+This design avoids unsafe substitutions such as:
+
+```python
+is_substitution_correct(["x", "y", "z"], "y = x", "x^2 = z", "y = sqrt(z)")  # False
+```
+
+`x^2 = z` does not prove `x = sqrt(z)` because `x = -sqrt(z)` is also possible.
+
 ## Limitations
 
 Symbolic equation equivalence is not generally decidable for every possible equation. This function is intentionally conservative:
@@ -190,9 +260,18 @@ or:
 SymPy and this checker could not prove they are the same
 ```
 
+The substitution checker follows the same conservative rule:
+
+```text
+proven correct -> True
+wrong, ambiguous, invalid, or not proven -> False
+```
+
 ## Internal Helpers
 
 The following functions are implementation details in `src/check_util.py`. They are underscore-prefixed and should not be treated as stable public API.
+
+`src/check_substitution.py` also contains underscore-prefixed helper functions for parsing substitution sides, building replacement candidates, and comparing substituted residuals. Those helpers are implementation details as well.
 
 ### `_build_symbol_map(symbol_list)`
 
