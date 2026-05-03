@@ -94,6 +94,96 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
             is_equation_equal(["F", "m", "a"], "F = m×a", "F - m*a = 0")
         )
 
+    def test_four_var_linear_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["a", "b", "c", "d"],
+                "a + 2*b - 3*c + d = 11",
+                "d = 11 - a - 2*b + 3*c",
+            )
+        )
+
+    def test_four_var_scaled_plane_relation(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["w", "x", "y", "z"],
+                "4*w - 8*x + 12*y - 16*z = 20",
+                "w - 2*x + 3*y - 4*z = 5",
+            )
+        )
+
+    def test_four_var_fraction_cross_multiply(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["p", "q", "r", "s"],
+                "(p + q)/r = s",
+                "p + q = r*s",
+            )
+        )
+
+    def test_four_var_log_exp_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["A", "B", "C", "D"],
+                "A = B + C*log(D)",
+                "D = exp((A - B)/C)",
+            )
+        )
+
+    def test_four_var_trig_sum_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "u", "v"],
+                "sin(x) + cos(y) = u - v",
+                "u = sin(x) + cos(y) + v",
+            )
+        )
+
+    def test_four_var_difference_of_squares(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["m", "n", "p", "q"],
+                "m^2 - n^2 = p - q",
+                "(m - n)*(m + n) - p + q = 0",
+            )
+        )
+
+    def test_four_var_nested_parentheses_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["i", "j", "k", "l"],
+                "2*(i - j) + 3*(k + l) = 7",
+                "l = (7 - 2*(i - j) - 3*k)/3",
+            )
+        )
+
+    def test_four_var_exponential_shift_rearrangement(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["P", "Q", "R", "S"],
+                "P = Q*exp(R) + S",
+                "R = log((P - S)/Q)",
+            )
+        )
+
+    def test_four_var_reciprocal_relation(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["a", "b", "c", "d"],
+                "1/(a + b) = c/d",
+                "d = c*(a + b)",
+            )
+        )
+
+    def test_four_var_polynomial_grouping_equivalence(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z", "t"],
+                "x*y + z = t + 1",
+                "z = t + 1 - x*y",
+            )
+        )
+
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
@@ -174,6 +264,96 @@ class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_three_var_quadratic_surface_vs_plane(self):
         self.assertFalse(
             is_equation_equal(["x", "y", "z"], "z = x^2 + y^2", "z = x + y")
+        )
+
+    def test_four_var_linear_wrong_constant(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["a", "b", "c", "d"],
+                "a + 2*b - 3*c + d = 11",
+                "d = 10 - a - 2*b + 3*c",
+            )
+        )
+
+    def test_four_var_scaled_relation_wrong_scale(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["w", "x", "y", "z"],
+                "4*w - 8*x + 12*y - 16*z = 20",
+                "w - 2*x + 3*y - 4*z = 6",
+            )
+        )
+
+    def test_four_var_fraction_wrong_rearrangement(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["p", "q", "r", "s"],
+                "(p + q)/r = s",
+                "p + q = r + s",
+            )
+        )
+
+    def test_four_var_log_exp_wrong_offset(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["A", "B", "C", "D"],
+                "A = B + C*log(D)",
+                "D = exp((A - B + 1)/C)",
+            )
+        )
+
+    def test_four_var_trig_sum_wrong_sign(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "u", "v"],
+                "sin(x) + cos(y) = u - v",
+                "u = sin(x) - cos(y) + v",
+            )
+        )
+
+    def test_four_var_difference_of_squares_vs_sum(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["m", "n", "p", "q"],
+                "m^2 - n^2 = p - q",
+                "(m + n)^2 - p + q = 0",
+            )
+        )
+
+    def test_four_var_parentheses_wrong_coefficient(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["i", "j", "k", "l"],
+                "2*(i - j) + 3*(k + l) = 7",
+                "l = (7 - 2*(i - j) - 2*k)/3",
+            )
+        )
+
+    def test_four_var_exponential_wrong_additive_term(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["P", "Q", "R", "S"],
+                "P = Q*exp(R) + S",
+                "R = log((P + S)/Q)",
+            )
+        )
+
+    def test_four_var_reciprocal_wrong_side(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["a", "b", "c", "d"],
+                "1/(a + b) = c/d",
+                "d = c/(a + b)",
+            )
+        )
+
+    def test_four_var_polynomial_grouping_not_equivalent(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z", "t"],
+                "x*y + x*z = x*(t + 1)",
+                "y + z = x + t + 1",
+            )
         )
 
 
