@@ -334,6 +334,106 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_true_five_var_affine_group_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "k"],
+                "k = 2*a + 3*b + c - d",
+                "2*a + 3*b = c",
+                "k = c + c - d",
+            )
+        )
+
+    def test_true_five_var_fractional_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["p", "q", "r", "s", "t"],
+                "t = p/q + r - s",
+                "q = 1/s",
+                "t = p*s + r - s",
+            )
+        )
+
+    def test_true_five_var_exponential_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["m", "n", "u", "v", "w"],
+                "w = 2*exp(m - n) + u - v",
+                "exp(m - n) = v",
+                "w = 2*v + u - v",
+            )
+        )
+
+    def test_true_five_var_trig_product_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "u", "v"],
+                "v = z*sin(x + y) + u",
+                "sin(x + y) = u",
+                "v = z*u + u",
+            )
+        )
+
+    def test_true_five_var_log_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "k"],
+                "k = log(a*b) + c - d",
+                "log(a*b) = d",
+                "k = d + c - d",
+            )
+        )
+
+    def test_true_five_var_abs_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "p", "q"],
+                "q = 3*Abs(x - y) + z - p",
+                "x - y = p",
+                "q = 3*Abs(p) + z - p",
+            )
+        )
+
+    def test_true_five_var_sqrt_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["r", "s", "t", "u", "v"],
+                "v = sqrt(r + s) + t - u",
+                "r + s = u^2",
+                "v = sqrt(u^2) + t - u",
+            )
+        )
+
+    def test_true_five_var_polynomial_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["f", "g", "h", "k", "m"],
+                "m = f^2 + 2*f*g + h - k",
+                "f^2 + 2*f*g = k",
+                "m = k + h - k",
+            )
+        )
+
+    def test_true_five_var_hyperbolic_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "e"],
+                "e = c*cosh(a - b) + d",
+                "cosh(a - b) = b",
+                "e = c*b + d",
+            )
+        )
+
+    def test_true_five_var_reciprocal_shift_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["i", "j", "k", "l", "m"],
+                "m = i + 1/(j + k) + l",
+                "j + k = i",
+                "m = i + 1/i + l",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
@@ -633,6 +733,106 @@ class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
                 "f = g + 1/(h + k)",
                 "h + k = g",
                 "f = g + 1/(g + 1)",
+            )
+        )
+
+    def test_false_five_var_affine_group_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "k"],
+                "k = 2*a + 3*b + c - d",
+                "2*a + 3*b = c",
+                "k = c - d",
+            )
+        )
+
+    def test_false_five_var_fractional_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["p", "q", "r", "s", "t"],
+                "t = p/q + r - s",
+                "q = 1/s",
+                "t = p/s + r - s",
+            )
+        )
+
+    def test_false_five_var_exponential_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["m", "n", "u", "v", "w"],
+                "w = 2*exp(m - n) + u - v",
+                "exp(m - n) = v",
+                "w = v + u - v",
+            )
+        )
+
+    def test_false_five_var_trig_product_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "u", "v"],
+                "v = z*sin(x + y) + u",
+                "sin(x + y) = u",
+                "v = z + u",
+            )
+        )
+
+    def test_false_five_var_log_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "k"],
+                "k = log(a*b) + c - d",
+                "log(a*b) = d",
+                "k = log(d) + c - d",
+            )
+        )
+
+    def test_false_five_var_abs_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "p", "q"],
+                "q = 3*Abs(x - y) + z - p",
+                "x - y = p",
+                "q = 3*p + z - p",
+            )
+        )
+
+    def test_false_five_var_sqrt_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["r", "s", "t", "u", "v"],
+                "v = sqrt(r + s) + t - u",
+                "r + s = u^2",
+                "v = u + t - u",
+            )
+        )
+
+    def test_false_five_var_polynomial_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["f", "g", "h", "k", "m"],
+                "m = f^2 + 2*f*g + h - k",
+                "f^2 + 2*f*g = k",
+                "m = h - k",
+            )
+        )
+
+    def test_false_five_var_hyperbolic_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "e"],
+                "e = c*cosh(a - b) + d",
+                "cosh(a - b) = b",
+                "e = c*sinh(b) + d",
+            )
+        )
+
+    def test_false_five_var_reciprocal_shift_substitution(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["i", "j", "k", "l", "m"],
+                "m = i + 1/(j + k) + l",
+                "j + k = i",
+                "m = i + 1/(i + 1) + l",
             )
         )
 
