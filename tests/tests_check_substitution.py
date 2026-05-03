@@ -434,6 +434,46 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_true_five_var_affine_group_substitution2(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "q"],
+                "q = 4*(a + b) - c + d",
+                "a + b = c",
+                "q = 4*c - c + d",
+            )
+        )
+
+    def test_true_five_var_affine_group_substitution3(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "q", "g"],
+                "q = 7*(a + b + c) - g + d",
+                "a + b + c = g",
+                "q = 7*g - g + d",
+            )
+        )
+
+    def test_true_five_var_affine_group_substitution4(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "z", "g", "f"],
+                "f = cos(sin(a + c + b) + d) + z - g",
+                "a + c + b = z",
+                "f = cos(sin(z) + d) + z - g",
+            )
+        )
+
+    def test_true_five_var_affine_group_substitution5(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "d", "z", "g", "f"],
+                "f = cos(sin(a + c + b) + d) + z - g",
+                "sin(a + c + b) = g",
+                "f = cos(g + d) + z - g",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
