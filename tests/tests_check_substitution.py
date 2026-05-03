@@ -104,6 +104,106 @@ class TestIsSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_fractional_linear_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = x/2 + z",
+                "x = 2*a",
+                "y = a + z",
+            )
+        )
+
+    def test_binomial_cube_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = x^3 + z",
+                "x = a + 1",
+                "y = (a + 1)^3 + z",
+            )
+        )
+
+    def test_shifted_difference_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["u", "v", "w", "k"],
+                "u = v - w + 2",
+                "v - w = k",
+                "u = k + 2",
+            )
+        )
+
+    def test_nested_trig_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "t"],
+                "y = sin(x) + z*t",
+                "sin(x) = t",
+                "y = t + z*t",
+            )
+        )
+
+    def test_log_argument_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "k"],
+                "y = log(x + z) + 1",
+                "x + z = k",
+                "y = log(k) + 1",
+            )
+        )
+
+    def test_exponential_factor_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = z*exp(x) + 4",
+                "exp(x) = a",
+                "y = z*a + 4",
+            )
+        )
+
+    def test_absolute_value_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "u"],
+                "y = Abs(x - z) + 3",
+                "x - z = u",
+                "y = Abs(u) + 3",
+            )
+        )
+
+    def test_reciprocal_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["p", "q", "r", "s"],
+                "p = q + 1/r",
+                "r = 1/s",
+                "p = q + s",
+            )
+        )
+
+    def test_scaled_group_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["a", "b", "c", "m"],
+                "c = 3*(a + b) - 7",
+                "a + b = m",
+                "c = 3*m - 7",
+            )
+        )
+
+    def test_hyperbolic_substitution(self):
+        self.assertTrue(
+            is_substitution_correct(
+                ["x", "y", "z", "h"],
+                "y = cosh(x) + z",
+                "cosh(x) = h",
+                "y = h + z",
+            )
+        )
+
 
 class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_missing_multiplier_substitution(self):
@@ -203,6 +303,106 @@ class TestIsSubstitutionCorrectFalseCases(unittest.TestCase):
                 "y = sin(x)^2 + cos(x)^2 + z",
                 "sin(x)^2 + cos(x)^2 = 1",
                 "y = z",
+            )
+        )
+
+    def test_fractional_linear_wrong_coefficient(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = x/2 + z",
+                "x = 2*a",
+                "y = 2*a + z",
+            )
+        )
+
+    def test_binomial_cube_missing_power(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = x^3 + z",
+                "x = a + 1",
+                "y = a + 1 + z",
+            )
+        )
+
+    def test_shifted_difference_wrong_constant(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["u", "v", "w", "k"],
+                "u = v - w + 2",
+                "v - w = k",
+                "u = k + 1",
+            )
+        )
+
+    def test_nested_trig_wrong_sign(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "t"],
+                "y = sin(x) + z*t",
+                "sin(x) = t",
+                "y = t - z*t",
+            )
+        )
+
+    def test_log_argument_wrong_target(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "k"],
+                "y = log(x + z) + 1",
+                "x + z = k",
+                "y = k + 1",
+            )
+        )
+
+    def test_exponential_factor_missing_multiplier(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "a"],
+                "y = z*exp(x) + 4",
+                "exp(x) = a",
+                "y = a + 4",
+            )
+        )
+
+    def test_absolute_value_dropped_abs(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "u"],
+                "y = Abs(x - z) + 3",
+                "x - z = u",
+                "y = u + 3",
+            )
+        )
+
+    def test_reciprocal_substitution_wrong_inverse(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["p", "q", "r", "s"],
+                "p = q + 1/r",
+                "r = 1/s",
+                "p = q + 1/s",
+            )
+        )
+
+    def test_scaled_group_wrong_scale(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["a", "b", "c", "m"],
+                "c = 3*(a + b) - 7",
+                "a + b = m",
+                "c = m - 7",
+            )
+        )
+
+    def test_hyperbolic_substitution_wrong_function(self):
+        self.assertFalse(
+            is_substitution_correct(
+                ["x", "y", "z", "h"],
+                "y = cosh(x) + z",
+                "cosh(x) = h",
+                "y = sinh(h) + z",
             )
         )
 
