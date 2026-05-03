@@ -7,6 +7,7 @@ The main APIs are:
 ```python
 from src.check_util import is_equation_equal
 from src.check_substitution import is_substitution_correct
+from src.check_calculation import is_calculation_correct
 ```
 
 ## Setup
@@ -130,6 +131,54 @@ print(result)  # False
 
 The second example is false because substituting `x = z^3` into `y = 2*x + 5*z` gives `y = 2*z^3 + 5*z`, not `y = z^3 + 5*z`.
 
+### `is_calculation_correct(symbol_list: list[str], symbol_val: list[float], equation: str, expected_value: float, tolerance: float) -> bool`
+
+Returns `True` when substituting `symbol_val` into `equation` and evaluating it produces an `actual` value that satisfies:
+
+```text
+abs((actual - expected_value) / actual) < tolerance
+```
+
+Returns `False` when the relative-error condition is not met, or when input is invalid or unsupported.
+
+Import it with:
+
+```python
+from src.check_calculation import is_calculation_correct
+```
+
+Basic usage:
+
+```python
+from src.check_calculation import is_calculation_correct
+
+result = is_calculation_correct(
+    ["x", "y", "z"],
+    [0.5, -0.2, 14.0],
+    "x + y^2 + 1/z",
+    0.61142,
+    0.001,
+)
+
+print(result)  # True
+```
+
+Incorrect expected-value example:
+
+```python
+from src.check_calculation import is_calculation_correct
+
+result = is_calculation_correct(
+    ["x", "y", "z"],
+    [0.5, -0.2, 14.0],
+    "x + y^2 + 1/z",
+    1.511,
+    0.001,
+)
+
+print(result)  # False
+```
+
 ## Arguments
 
 `symbol_list` must be a list of strings containing every symbol used by both equations.
@@ -165,6 +214,8 @@ In that form, the expression is treated as:
 ```text
 expression = 0
 ```
+
+For `is_calculation_correct`, `symbol_val` must be a list of finite numeric values with the same length and order as `symbol_list`, and `equation` must be a SymPy-compatible expression string (or a single equation interpreted as a residual).
 
 ## Supported Syntax
 
