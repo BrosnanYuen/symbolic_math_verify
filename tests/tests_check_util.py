@@ -274,6 +274,96 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
             )
         )
 
+    def test_derivative_polynomial_basic_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(x^2 + 6, x) = 2*x",
+                "Derivative(x^2 + 6, x) - 2*x = 0",
+            )
+        )
+
+    def test_derivative_trig_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(sin(x), x) = cos(x)",
+                "Derivative(sin(x), x) - cos(x) = 0",
+            )
+        )
+
+    def test_derivative_exponential_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(exp(3*x), x) = 3*exp(3*x)",
+                "Derivative(exp(3*x), x)/(3*exp(3*x)) = 1",
+            )
+        )
+
+    def test_integral_definite_quadratic_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Integral(2*x, (x, 0, 3)) = 9",
+                "Integral(2*x, (x, 0, 3)) - 9 = 0",
+            )
+        )
+
+    def test_integral_definite_trig_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Integral(cos(x), (x, 0, pi/2)) = 1",
+                "Integral(cos(x), (x, 0, pi/2)) - 1 = 0",
+            )
+        )
+
+    def test_derivative_log_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(log(x), x) = 1/x",
+                "x*Derivative(log(x), x) = 1",
+            )
+        )
+
+    def test_derivative_cubic_linear_combo_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(x^3 - 4*x, x) = 3*x^2 - 4",
+                "Derivative(x^3 - 4*x, x) - 3*x^2 + 4 = 0",
+            )
+        )
+
+    def test_integral_definite_exponential_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Integral(exp(x), (x, 0, 1)) = E - 1",
+                "Integral(exp(x), (x, 0, 1)) + 1 = E",
+            )
+        )
+
+    def test_derivative_sqrt_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(sqrt(x), x) = 1/(2*sqrt(x))",
+                "2*sqrt(x)*Derivative(sqrt(x), x) = 1",
+            )
+        )
+
+    def test_integral_derivative_identity_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x"],
+                "Derivative(Integral(x^2, x), x) = x^2",
+                "Derivative(Integral(x^2, x), x) - x^2 = 0",
+            )
+        )
+
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
@@ -533,6 +623,96 @@ class TestIsEquationEqualFalseCases(unittest.TestCase):
                 ["x1", "x2", "x3", "x4", "x5", "x6"],
                 "x1*x2 + x3*x4 = x5*x6",
                 "x1 + x2 + x3 + x4 = x5*x6",
+            )
+        )
+
+    def test_derivative_polynomial_basic_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(x^2 + 6, x) = 2*x",
+                "Derivative(x^2 + 6, x) = 2*x + 1",
+            )
+        )
+
+    def test_derivative_trig_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(sin(x), x) = cos(x)",
+                "Derivative(sin(x), x) = sin(x)",
+            )
+        )
+
+    def test_integral_definite_quadratic_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Integral(2*x, (x, 0, 3)) = 9",
+                "Integral(2*x, (x, 0, 3)) = 8",
+            )
+        )
+
+    def test_integral_definite_trig_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Integral(cos(x), (x, 0, pi/2)) = 1",
+                "Integral(cos(x), (x, 0, pi/2)) = 0",
+            )
+        )
+
+    def test_derivative_log_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(log(x), x) = 1/x",
+                "Derivative(log(x), x) = x",
+            )
+        )
+
+    def test_derivative_cubic_linear_combo_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(x^3 - 4*x, x) = 3*x^2 - 4",
+                "Derivative(x^3 - 4*x, x) = 3*x - 4",
+            )
+        )
+
+    def test_integral_definite_exponential_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Integral(exp(x), (x, 0, 1)) = E - 1",
+                "Integral(exp(x), (x, 0, 1)) = E",
+            )
+        )
+
+    def test_derivative_sqrt_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(sqrt(x), x) = 1/(2*sqrt(x))",
+                "Derivative(sqrt(x), x) = 1/sqrt(x)",
+            )
+        )
+
+    def test_integral_log_definite_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Integral(1/x, (x, 1, E)) = 1",
+                "Integral(1/x, (x, 1, E)) = 2",
+            )
+        )
+
+    def test_derivative_trig_product_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x"],
+                "Derivative(sin(x)^2, x) = 2*sin(x)*cos(x)",
+                "Derivative(sin(x)^2, x) = 2*sin(x)",
             )
         )
 
