@@ -50,22 +50,26 @@ def is_equation_equal(symbol_list: list[str], lhs_equation: str, rhs_equation: s
     """Return True when SymPy can prove two equation strings have the same zero relation."""  # Document the function contract.
     try:  # Convert invalid inputs and unprovable cases into a False result.
         symbol_map = _build_symbol_map(symbol_list)  # Build SymPy Symbol objects from the caller's declared symbols.
+        if _safe_same_transformed_relation(symbol_map, lhs_equation, rhs_equation):  # Recognize same-template transformations before SymPy can evaluate transform calls.
+            return True  # Report proven correctness for equations such as h(f(x)) = h(g(x)).
         parse_locals = _build_parse_locals(symbol_map)  # Combine declared symbols with known math functions and constants.
         lhs_residual = _parse_equation(lhs_equation, parse_locals)  # Convert the left equation string into lhs minus rhs.
         rhs_residual = _parse_equation(rhs_equation, parse_locals)  # Convert the right equation string into lhs minus rhs.
         if lhs_residual is None or rhs_residual is None:  # Reject strings that could not be parsed as expressions or equations.
-            return False  # Report that unparsable input cannot be proven equivalent.
+            return _safe_same_transformed_relation(symbol_map, lhs_equation, rhs_equation)  # Try structural transformation proof before rejecting.
         if not _uses_only_requested_symbols(lhs_residual, rhs_residual, set(symbol_map)):  # Reject undeclared symbols in either parsed equation.
-            return False  # Report that equations outside the declared symbol list are not accepted.
+            return _safe_same_transformed_relation(symbol_map, lhs_equation, rhs_equation)  # Let the structural parser apply the same symbol guard.
         if _same_zero_residual(lhs_residual, rhs_residual):  # Try direct algebraic equivalence of the normalized residual equations.
             return True  # Report proven equivalence when the residuals differ only by a nonzero constant factor.
         if _same_solved_relation(lhs_residual, rhs_residual, list(symbol_map.values())):  # Try equivalence after solving both equations for a declared symbol.
             return True  # Report proven equivalence for rearranged equations with the same solved form.
-        if _same_transformed_relation(symbol_map, lhs_equation, rhs_equation):  # Try proof by same transformation applied to both equation sides.
-            return True  # Report proven correctness for equations such as h(f(x)) = h(g(x)).
         return False  # Report non-equivalence when all proof attempts fail.
     except Exception:  # Keep malformed strings, unsupported equations, and SymPy failures from escaping.
-        return False  # Report unsupported or invalid input as not proven equivalent.
+        try:  # The normal parser can fail for transform helpers that return non-expression objects.
+            symbol_map = _build_symbol_map(symbol_list)  # Rebuild symbols for the structural fallback.
+        except Exception:  # Reject invalid symbol lists.
+            return False  # Report unsupported or invalid input as not proven equivalent.
+        return _safe_same_transformed_relation(symbol_map, lhs_equation, rhs_equation)  # Try the unevaluated transformation parser before giving up.
 
 
 def _build_symbol_map(symbol_list: list[str]) -> dict[str, sp.Symbol]:  # Convert a list of names into SymPy symbols.
@@ -125,6 +129,13 @@ def _parse_expression(expression: str, parse_locals: dict[str, object], evaluate
     return parse_expr(expression, local_dict=parse_locals, transformations=_TRANSFORMATIONS, evaluate=evaluate)  # Delegate parsing to SymPy.
 
 
+def _safe_same_transformed_relation(symbol_map: dict[str, sp.Symbol], lhs_equation: str, rhs_equation: str) -> bool:  # Run transformation proof while preserving the public False-on-error contract.
+    try:  # Structural parsing can still fail on malformed input.
+        return _same_transformed_relation(symbol_map, lhs_equation, rhs_equation)  # Delegate to the actual template matcher.
+    except Exception:  # Treat unsupported transformation syntax as not proven.
+        return False  # Report no proof.
+
+
 def _same_transformed_relation(symbol_map: dict[str, sp.Symbol], lhs_equation: str, rhs_equation: str) -> bool:  # Check whether one equation applies the same expression template to the other's sides.
     lhs_sides = _parse_equation_sides_preserving_functions(lhs_equation, symbol_map)  # Parse the first equation without collapsing function-call notation.
     rhs_sides = _parse_equation_sides_preserving_functions(rhs_equation, symbol_map)  # Parse the second equation without collapsing function-call notation.
@@ -159,28 +170,25 @@ def _parse_equation_sides_preserving_functions(equation: str, symbol_map: dict[s
     return parsed_expr, sp.Integer(0)  # Treat a plain expression as expression equals zero.
 
 
-def _parse_expression_preserving_declared_functions(expression: str, symbol_map: dict[str, sp.Symbol]) -> sp.Expr:  # Parse one side while treating declared call syntax like y(x) as a function call.
+def _parse_expression_preserving_declared_functions(expression: str, symbol_map: dict[str, sp.Symbol]) -> sp.Expr:  # Parse one side while treating transformation-call syntax as unevaluated.
     parse_locals = _build_parse_locals(symbol_map)  # Start with the normal parser namespace.
-    for function_name in _declared_callable_names(expression, symbol_map):  # Find caller-declared names used as functions in this expression.
-        parse_locals[function_name] = sp.Function(function_name)  # Let y(x), f(x), h(...) parse as undefined function applications.
+    for function_name in _callable_names_to_preserve(expression):  # Find function-call names that should not be evaluated by SymPy.
+        parse_locals[function_name] = sp.Function(function_name)  # Let y(x), f(x), h(...), and transform helpers parse as function applications.
     return _parse_expression(expression, parse_locals, evaluate=False)  # Preserve outer transformation structure for template matching.
 
 
-def _declared_callable_names(expression: str, symbol_map: dict[str, sp.Symbol]) -> set[str]:  # Find declared symbol names used with function-call syntax.
+def _callable_names_to_preserve(expression: str) -> set[str]:  # Find non-core callable names to keep unevaluated for template matching.
     return {
         match.group(1)
         for match in _CALLABLE_NAME_PATTERN.finditer(expression)
-        if match.group(1) in symbol_map and match.group(1) not in _DEFAULT_PARSE_LOCALS
+        if match.group(1) not in _DEFAULT_PARSE_LOCALS
     }  # Avoid overriding supported math functions such as sin, log, and exp.
 
 
-def _sides_use_only_requested_names(sides: tuple[sp.Expr, sp.Expr], allowed_symbol_names: set[str]) -> bool:  # Check symbols and caller-declared undefined functions.
+def _sides_use_only_requested_names(sides: tuple[sp.Expr, sp.Expr], allowed_symbol_names: set[str]) -> bool:  # Check that expression variables are caller-declared.
     for side in sides:  # Inspect both sides of the equation.
         used_symbol_names = {symbol.name for symbol in side.free_symbols}  # Collect ordinary symbols.
-        used_function_names = {function_call.func.__name__ for function_call in side.atoms(AppliedUndef)}  # Collect undefined function names.
         if not used_symbol_names.issubset(allowed_symbol_names):  # Reject undeclared symbols.
-            return False  # Report invalid input.
-        if not used_function_names.issubset(allowed_symbol_names):  # Reject undeclared function names.
             return False  # Report invalid input.
     return True  # Report that all names are declared.
 

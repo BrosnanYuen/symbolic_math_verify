@@ -480,6 +480,23 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
                 "Integral(y(x), x) = Integral(x^2 + 6, x)",
             )
         )
+    def test_user_example_equation_to_fourier_equation_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["t", "w", "y"],
+                "y = sin(t)",
+                "fourier_transform(y(t), t, w) = fourier_transform(sin(t), t, w)",
+            )
+        )
+    def test_user_example_equation_to_laplace_equation_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["t", "s", "y"],
+                "y = sin(t)",
+                "laplace_transform(y(t), t, s) = laplace_transform(sin(t), t, s)",
+            )
+        )
+
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
