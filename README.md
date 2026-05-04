@@ -37,6 +37,12 @@ If the virtual environment already exists, use the project interpreter directly:
 .venv/bin/python -m unittest discover -s tests -p 'tests_*.py'
 ```
 
+Run tests in parallel across CPU cores:
+
+```bash
+.venv/bin/python tests/run_parallel_unittest.py
+```
+
 ## Public API
 
 ### `is_equation_equal(symbol_list: list[str], lhs_equation: str, rhs_equation: str) -> bool`
