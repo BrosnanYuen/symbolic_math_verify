@@ -939,6 +939,33 @@ class TestIsEquationEqualFalseCases(unittest.TestCase):
             )
         )
 
+    def test_user_example_equation_to_integral_equation_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y"],
+                "y = x^2 + 6",
+                "Integral(y(x), x) = Integral(x^2 + 3, x)",
+            )
+        )
+
+    def test_user_example_equation_to_fourier_equation_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["t", "w", "y"],
+                "y = sin(t)",
+                "fourier_transform(y(t), t, w) = fourier_transform(sin(t) + t, t, w)",
+            )
+        )
+    def test_user_example_equation_to_laplace_equation_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["t", "s", "y"],
+                "y = sin(t)",
+                "laplace_transform(y(t), t, s) = laplace_transform(sin(t) - 1, t, s)",
+            )
+        )
+
+
 
 if __name__ == "__main__":
     unittest.main()
