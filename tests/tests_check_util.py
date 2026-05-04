@@ -454,6 +454,32 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
             )
         )
 
+    def test_user_example_equation_to_derivative_equation_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y"],
+                "y = x^2 + 6",
+                "Derivative(y(x), x) = Derivative(x^2 + 6, x)",
+            )
+        )
+
+    def test_user_example_derivative_to_simplified_derivative_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y"],
+                "Derivative(y(x), x) = Derivative(x^2 + 6, x)",
+                "Derivative(y(x), x) = 2*x",
+            )
+        )
+
+    def test_user_example_equation_to_integral_equation_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y"],
+                "y = x^2 + 6",
+                "Integral(y(x), x) = Integral(x^2 + 6, x)",
+            )
+        )
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
