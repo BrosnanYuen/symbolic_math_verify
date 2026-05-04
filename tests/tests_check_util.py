@@ -364,6 +364,96 @@ class TestIsEquationEqualTrueCases(unittest.TestCase):
             )
         )
 
+    def test_three_var_derivative_linear_combo_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(x*y + z, x) = y",
+                "Derivative(x*y + z, x) - y = 0",
+            )
+        )
+
+    def test_three_var_derivative_trig_plus_constant_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(sin(x) + y + z, x) = cos(x)",
+                "Derivative(sin(x) + y + z, x) - cos(x) = 0",
+            )
+        )
+
+    def test_three_var_definite_integral_scaled_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Integral(y*x, (x, 0, z)) = y*z^2/2",
+                "2*Integral(y*x, (x, 0, z)) = y*z^2",
+            )
+        )
+
+    def test_three_var_definite_integral_polynomial_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Integral(a*x + b, (x, 0, 2)) = 2*a + 2*b",
+                "Integral(a*x + b, (x, 0, 2)) - 2*a - 2*b = 0",
+            )
+        )
+
+    def test_three_var_derivative_exp_linear_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(exp(y*x + z), x) = y*exp(y*x + z)",
+                "Derivative(exp(y*x + z), x)/(exp(y*x + z)) = y",
+            )
+        )
+
+    def test_three_var_derivative_log_affine_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(log(a*x + b), x) = a/(a*x + b)",
+                "(a*x + b)*Derivative(log(a*x + b), x) = a",
+            )
+        )
+
+    def test_three_var_integral_derivative_identity_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(Integral(a*x + b, x), x) = a*x + b",
+                "Derivative(Integral(a*x + b, x), x) - a*x - b = 0",
+            )
+        )
+
+    def test_three_var_second_derivative_quadratic_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(a*x^2 + b*x, (x, 2)) = 2*a",
+                "Derivative(a*x^2 + b*x, (x, 2)) - 2*a = 0",
+            )
+        )
+
+    def test_three_var_definite_integral_trig_shift_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Integral(y*cos(x + z), (x, 0, pi/2)) = y*(cos(z) - sin(z))",
+                "Integral(y*cos(x + z), (x, 0, pi/2)) - y*(cos(z) - sin(z)) = 0",
+            )
+        )
+
+    def test_three_var_derivative_with_additive_constants_true(self):
+        self.assertTrue(
+            is_equation_equal(
+                ["x", "m", "n"],
+                "Derivative((x + m)*(x + n), x) = 2*x + m + n",
+                "Derivative((x + m)*(x + n), x) - 2*x - m - n = 0",
+            )
+        )
+
 
 class TestIsEquationEqualFalseCases(unittest.TestCase):
     def test_linear_wrong_solution(self):
@@ -713,6 +803,96 @@ class TestIsEquationEqualFalseCases(unittest.TestCase):
                 ["x"],
                 "Derivative(sin(x)^2, x) = 2*sin(x)*cos(x)",
                 "Derivative(sin(x)^2, x) = 2*sin(x)",
+            )
+        )
+
+    def test_three_var_derivative_linear_combo_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(x*y + z, x) = y",
+                "Derivative(x*y + z, x) = x",
+            )
+        )
+
+    def test_three_var_derivative_trig_plus_constant_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(sin(x) + y + z, x) = cos(x)",
+                "Derivative(sin(x) + y + z, x) = sin(x)",
+            )
+        )
+
+    def test_three_var_definite_integral_scaled_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Integral(y*x, (x, 0, z)) = y*z^2/2",
+                "2*Integral(y*x, (x, 0, z)) = y*z",
+            )
+        )
+
+    def test_three_var_definite_integral_polynomial_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Integral(a*x + b, (x, 0, 2)) = 2*a + 2*b",
+                "Integral(a*x + b, (x, 0, 2)) = 2*a + b",
+            )
+        )
+
+    def test_three_var_derivative_exp_linear_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Derivative(exp(y*x + z), x) = y*exp(y*x + z)",
+                "Derivative(exp(y*x + z), x) = exp(y*x + z)",
+            )
+        )
+
+    def test_three_var_derivative_log_affine_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(log(a*x + b), x) = a/(a*x + b)",
+                "(a*x + b)*Derivative(log(a*x + b), x) = b",
+            )
+        )
+
+    def test_three_var_integral_derivative_identity_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(Integral(a*x + b, x), x) = a*x + b",
+                "Derivative(Integral(a*x + b, x), x) = a*x - b",
+            )
+        )
+
+    def test_three_var_second_derivative_quadratic_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "a", "b"],
+                "Derivative(a*x^2 + b*x, (x, 2)) = 2*a",
+                "Derivative(a*x^2 + b*x, (x, 2)) = a",
+            )
+        )
+
+    def test_three_var_definite_integral_trig_shift_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "y", "z"],
+                "Integral(y*cos(x + z), (x, 0, pi/2)) = y*(cos(z) - sin(z))",
+                "Integral(y*cos(x + z), (x, 0, pi/2)) = y*(cos(z) + sin(z))",
+            )
+        )
+
+    def test_three_var_derivative_with_additive_constants_false(self):
+        self.assertFalse(
+            is_equation_equal(
+                ["x", "m", "n"],
+                "Derivative((x + m)*(x + n), x) = 2*x + m + n",
+                "Derivative((x + m)*(x + n), x) = 2*x + m - n",
             )
         )
 
