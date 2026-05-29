@@ -8,6 +8,7 @@ The main APIs are:
 from src.check_util import is_equation_equal
 from src.check_substitution import is_substitution_correct
 from src.check_calculation import is_calculation_correct
+from src.verify_yaml import verify_yaml_file
 ```
 
 ## Setup
@@ -19,16 +20,16 @@ python3 -m venv .venv
 . .venv/bin/activate
 ```
 
-Install SymPy:
+Install dependencies:
 
 ```bash
-pip install sympy
+pip install sympy pyyaml
 ```
 
 If the virtual environment already exists, use the project interpreter directly:
 
 ```bash
-.venv/bin/python -m pip install sympy
+.venv/bin/python -m pip install sympy pyyaml
 ```
 
 ## Run Tests
@@ -41,6 +42,12 @@ Run tests in parallel across CPU cores:
 
 ```bash
 .venv/bin/python tests/run_parallel_unittest.py
+```
+
+Run only YAML verifier tests:
+
+```bash
+.venv/bin/python -m unittest tests.tests_verify_yaml
 ```
 
 ## Public API
@@ -184,6 +191,56 @@ result = is_calculation_correct(
 
 print(result)  # False
 ```
+
+### `verify_yaml_file(file_path: str) -> str`
+
+Reads and validates a YAML file containing:
+
+- `axioms`
+- proof/theorem sections
+- optional `calculations`
+
+Validation includes:
+
+- YAML syntax and required keys
+- Symbol and equation validity for axioms
+- Proof-step chaining and symbolic equivalence checks
+- Calculation equation-source checks and numeric validation
+
+Import it with:
+
+```python
+from src.verify_yaml import verify_yaml_file
+```
+
+Basic usage:
+
+```python
+from src.verify_yaml import verify_yaml_file
+
+result = verify_yaml_file("test_yaml/valid_11_prompt_with_calculation.yaml")
+print(result)  # Math proofs are valid
+```
+
+Return values:
+
+- `Math proofs are valid`
+- `Error! YAML file is invalid: line <n>: <reason>`
+- `Error! Math proofs are invalid: line <n>: <reason>`
+- `Error! Calculations are invalid: line <n>: <reason>`
+
+## YAML Test Fixtures
+
+YAML fixtures for verifier tests are stored in:
+
+- `test_yaml/valid_*.yaml`
+- `test_yaml/invalid_*.yaml`
+
+`tests/tests_verify_yaml.py` runs these fixtures and checks:
+
+- valid files return `Math proofs are valid`
+- invalid files return `Error! ...`
+- valid/invalid fixture counts are equal
 
 ## Arguments
 
