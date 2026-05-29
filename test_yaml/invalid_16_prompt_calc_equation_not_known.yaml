@@ -1,0 +1,18 @@
+axioms:
+  tsiolkovsky_rocket_equation:
+    vars: ["delta_v", "v_e", "m_0", "m_f"]
+    equation: "delta_v = v_e * ln(m_0/m_f)"
+equation_propellant_mass:
+  vars: ["delta_v", "v_e", "m_0", "m_f"]
+  equation: |+
+    delta_v = v_e * ln(m_0/m_f) -> delta_v/v_e = ln(m_0/m_f)
+    delta_v/v_e = ln(m_0/m_f) -> exp(delta_v/v_e) = m_0/m_f
+    exp(delta_v/v_e) = m_0/m_f -> m_0 = m_f*exp(delta_v/v_e)
+calculations:
+  calculate_initial_mass:
+    vars: ["delta_v", "v_e", "m_f"]
+    values: [3.0, 4.0, 50000.0]
+    equation: "m_f*exp(delta_v*v_e)"
+    tolerance: 0.001
+    expected_value: 8.13773957e+9
+    expected_symbol: "m_0"

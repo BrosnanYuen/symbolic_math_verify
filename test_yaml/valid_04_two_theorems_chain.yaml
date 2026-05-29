@@ -1,0 +1,12 @@
+axioms:
+  base_relation:
+    vars: ["x", "y"]
+    equation: "x = y"
+theorem_one:
+  vars: ["x", "y"]
+  equation: |+
+    x = y -> y = x
+theorem_two:
+  vars: ["x", "y"]
+  equation: |+
+    y = x -> x = y

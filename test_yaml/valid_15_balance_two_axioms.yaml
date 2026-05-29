@@ -1,0 +1,7 @@
+axioms:
+  first:
+    vars: ["p", "q"]
+    equation: "p = q"
+  second:
+    vars: ["m", "v", "K"]
+    equation: "K = m*v"

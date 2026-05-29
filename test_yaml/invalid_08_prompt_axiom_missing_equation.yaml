@@ -1,0 +1,3 @@
+axioms:
+  conservation_of_energy:
+    vars: ["E_i", "E_f"]

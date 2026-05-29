@@ -1,0 +1,9 @@
+axioms:
+  base_relation:
+    vars: ["x", "y"]
+    equation: "x = y"
+theorem_bad:
+  vars: ["x", "y"]
+  equation: |+
+    x = y -> y = x
+    x = -y -> x = -y

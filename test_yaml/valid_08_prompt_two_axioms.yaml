@@ -1,0 +1,7 @@
+axioms:
+  conservation_of_energy:
+    vars: ["E_i", "E_f"]
+    equation: "E_i = E_f"
+  kinetic_energy:
+    vars: ["K", "m", "v"]
+    equation: "K = (1/2)*m*v^2"

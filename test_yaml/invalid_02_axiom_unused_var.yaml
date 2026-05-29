@@ -1,0 +1,4 @@
+axioms:
+  conservation_of_energy:
+    vars: ["E_i", "E_f", "X"]
+    equation: "E_i = E_f"

@@ -1,0 +1,8 @@
+axioms:
+  base:
+    vars: ["x", "y"]
+    equation: "x = y"
+theorem:
+  vars: ["x", "y"]
+  equation: |+
+    x = y -> y = x

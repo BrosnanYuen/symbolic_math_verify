@@ -1,0 +1,4 @@
+axioms:
+  broken_axiom:
+    vars: ["x", "y"
+    equation: "x = y"

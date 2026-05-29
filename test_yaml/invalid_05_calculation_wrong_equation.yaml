@@ -1,0 +1,12 @@
+axioms:
+  linear_value:
+    vars: ["a", "b"]
+    equation: "a = b"
+calculations:
+  calculate_a:
+    vars: ["b"]
+    values: [4.0]
+    equation: "b + 1"
+    tolerance: 0.001
+    expected_value: 5.0
+    expected_symbol: "a"

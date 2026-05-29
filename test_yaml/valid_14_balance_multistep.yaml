@@ -1,0 +1,9 @@
+axioms:
+  relation:
+    vars: ["a", "b"]
+    equation: "a = b"
+proof:
+  vars: ["a", "b"]
+  equation: |+
+    a = b -> a - b = 0
+    a - b = 0 -> b - a = 0
