@@ -7,6 +7,7 @@ The main APIs are:
 ```python
 from src.check_util import is_equation_equal
 from src.check_substitution import is_substitution_correct
+from src.check_subscript_substitution import is_subscript_substitution_correct
 from src.check_calculation import is_calculation_correct
 from src.verify_yaml import verify_yaml_file
 ```
@@ -192,6 +193,63 @@ result = is_calculation_correct(
 print(result)  # False
 ```
 
+### `is_subscript_substitution_correct(symbol_list: list[str], equation_before: str, subscript: str, equation_after: str) -> bool`
+
+Returns `True` when SymPy can prove that `equation_after` is a valid result of applying the same subscript suffix to every declared symbol in `equation_before`.
+
+Returns `False` when the subscript substitution is wrong, incomplete, uses the wrong subscript, is invalid, or cannot be proven by the implemented checks.
+
+Import it with:
+
+```python
+from src.check_subscript_substitution import is_subscript_substitution_correct
+```
+
+Basic usage:
+
+```python
+from src.check_subscript_substitution import is_subscript_substitution_correct
+
+result = is_subscript_substitution_correct(
+    ["E", "m", "v"],
+    "E = (1/2)*m*(v^2)",
+    "_i",
+    "E_i = (1/2)*(m_i)*((v_i)^2)",
+)
+
+print(result)  # True
+```
+
+Equivalent rearrangement example:
+
+```python
+from src.check_subscript_substitution import is_subscript_substitution_correct
+
+result = is_subscript_substitution_correct(
+    ["E", "m", "v"],
+    "E = (1/2)*m*(v^2)",
+    "_i",
+    "(E_i)/(m_i) = (1/2)*((v_i)^2)",
+)
+
+print(result)  # True
+```
+
+Wrong subscript substitution example:
+
+```python
+from src.check_subscript_substitution import is_subscript_substitution_correct
+
+result = is_subscript_substitution_correct(
+    ["U", "m", "g", "h"],
+    "U = m*g*h",
+    "_k",
+    "U_k = m_k*g_k*h",
+)
+
+print(result)  # False
+```
+
 ### `verify_yaml_file(file_path: str) -> str`
 
 Reads and validates a YAML file containing:
@@ -278,6 +336,16 @@ In that form, the expression is treated as:
 expression = 0
 ```
 
+For `is_subscript_substitution_correct`, `subscript` must be a string suffix beginning with `_`, such as:
+
+```python
+"_i"
+"_1"
+"_f2"
+```
+
+The function checks that every declared symbol in `symbol_list` is consistently renamed with that exact suffix everywhere in the equation.
+
 For `is_calculation_correct`, `symbol_val` must be a list of finite numeric values with the same length and order as `symbol_list`, and `equation` must be a SymPy-compatible expression string (or a single equation interpreted as a residual).
 
 ## Supported Syntax
@@ -352,6 +420,39 @@ is_substitution_correct(["x", "y", "z"], "y = x", "x^2 = z", "y = sqrt(z)")  # F
 ```
 
 `x^2 = z` does not prove `x = sqrt(z)` because `x = -sqrt(z)` is also possible.
+
+## How Subscript Substitution Is Checked
+
+The public subscript-substitution function:
+
+1. Validates `symbol_list` and the requested `subscript`.
+2. Builds the corresponding subscripted symbol names such as `E_i`, `m_i`, and `v_i`.
+3. Applies the renaming one symbol at a time using the existing substitution checker.
+4. Builds the fully subscripted target equation implied by `equation_before`.
+5. Compares that fully subscripted equation to `equation_after` using the equation-equivalence checker.
+6. Returns `True` only when the final equation is provably the same relation after consistent subscript substitution.
+
+This design accepts equivalent rearrangements such as:
+
+```python
+is_subscript_substitution_correct(
+    ["E", "m", "v"],
+    "E = (1/2)*m*(v^2)",
+    "_i",
+    "(E_i)/(m_i) = (1/2)*((v_i)^2)",
+)  # True
+```
+
+and rejects inconsistent results such as:
+
+```python
+is_subscript_substitution_correct(
+    ["U", "m", "g", "h"],
+    "U = m*g*h",
+    "_k",
+    "U_k = m_k*g_k*h",
+)  # False
+```
 
 ## Limitations
 
