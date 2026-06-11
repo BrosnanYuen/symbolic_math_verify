@@ -194,6 +194,25 @@ class TestIsSubscriptSubstitutionCorrectTrueCases(unittest.TestCase):
             )
         )
 
+    def test_repeated_symbol_occurrences_all_get_subscripted2(self):
+        self.assertTrue(
+            is_subscript_substitution_correct(
+                ["M", "x"],
+                "M = x + x^2",
+                "_delta",
+                "M_delta = x_delta + x_delta^2",
+            )
+        )
+
+    def test_linear_relation_shifted_after_subscript2(self):
+        self.assertTrue(
+            is_subscript_substitution_correct(
+                ["y", "x", "b"],
+                "y = x + b",
+                "_alpha1",
+                "y_alpha1 - x_alpha1 = b_alpha1",
+            )
+        )
 
 class TestIsSubscriptSubstitutionCorrectFalseCases(unittest.TestCase):
     def test_prompt_invalid_energy_missing_one_half_factor(self):
