@@ -1,0 +1,19 @@
+axioms:
+  kinetic_energy:
+    vars: ["K", "m", "v"]
+    equation: "K = (1/2)*m*v^2"
+  gravitational_potential_energy:
+    vars: ["U", "m", "g", "h"]
+    equation: "U = m*g*h"
+  kinetic_gravitational_potential_energy:
+    vars: ["E", "U", "K"]
+    equation: "E = U + K"
+energy_total:
+  vars: ["E", "U", "K", "m", "v", "g", "h"]
+  equation: |+
+    E = U + K ; K = (1/2)*m*v^2 -> E = U + (1/2)*m*v^2
+    E = U + (1/2)*m*v^2 ; U = m*g*h -> E = m*g*h + (1/2)*m*v^2
+energy_total_initial:
+  vars: ["E", "m", "v", "g", "h", "E_i", "m_i", "v_i", "g_i", "h_i"]
+  equation: |+
+    E = m*g*h + (1/2)*m*v^2 : _i -> E_i = m_i*g_i*h_i + (1/2)*m_i*((v_i)^2)

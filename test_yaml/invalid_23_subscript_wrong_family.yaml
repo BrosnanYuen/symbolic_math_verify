@@ -1,0 +1,8 @@
+axioms:
+  kinetic_energy:
+    vars: ["K", "m", "v"]
+    equation: "K = (1/2)*m*v^2"
+kinetic_initial:
+  vars: ["K", "m", "v", "K_j", "m_i", "v_i"]
+  equation: |+
+    K = (1/2)*m*v^2 : _i -> K_j = (1/2)*m_i*((v_i)^2)
