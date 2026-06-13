@@ -207,13 +207,27 @@ def verify_yaml_file(file_path: str) -> str:
         step_lines = [row for row in equation_block.splitlines() if row.strip()]  # Keep only non-empty proof-step lines from the block scalar.
         if not step_lines:  # Guard against proof blocks that contain only blank lines.
             return f"Error! YAML file is invalid: line {eq_line}: equation proof block has no steps"  # Reject proof blocks with no usable steps.
+        proof_block_for_vars = "\n".join(_strip_inline_comment(row) for row in step_lines)  # Normalize the proof block so explicit and inferred theorem vars are checked against the same content.
+        detected_section_vars = _normalized_detected_vars(proof_block_for_vars)  # Infer the symbols that actually appear anywhere in the theorem proof block.
         if "vars" in top_value:  # Preserve the existing explicit-vars behavior when the YAML provides theorem vars.
             vars_line = ast_lines["sections"].get(top_key, {}).get("vars", section_line)  # Recover the best available line number for the theorem vars field.
             if not isinstance(top_value.get("vars"), list) or not all(isinstance(item, str) for item in top_value.get("vars", [])):  # Require theorem vars to be a list of strings.
                 return f"Error! YAML file is invalid: line {vars_line}: vars must be a list of strings"  # Reject malformed theorem vars declarations.
             section_vars = [value.strip() for value in top_value["vars"]]  # Normalize theorem symbol names by trimming whitespace.
+            try:  # Validate theorem vars names and compare them to the proof block when vars are explicit.
+                _build_symbol_map(section_vars)  # Reuse the same parser-friendly symbol-name validation used elsewhere in the verifier.
+            except Exception as exc:  # Convert invalid theorem vars into a YAML validation error at the vars field.
+                return f"Error! YAML file is invalid: line {vars_line}: vars validation failed: {exc}"  # Report invalid theorem vars with the field line number.
+            detected = set(detected_section_vars)  # Collect the symbols that actually appear in the theorem proof block.
+            declared = {value for value in section_vars}  # Collect the caller-declared theorem vars after normalization.
+            missing = sorted(detected - declared)  # Identify symbols used in the proof block but omitted from explicit theorem vars.
+            extra = sorted(declared - detected)  # Identify unused symbols declared in explicit theorem vars.
+            if missing:  # Reject theorem vars lists that omit symbols used anywhere in the proof block.
+                return f"Error! YAML file is invalid: line {vars_line}: vars missing symbols used by proof block: {missing}"  # Report missing theorem proof-block symbols at the vars field.
+            if extra:  # Reject theorem vars lists that declare symbols never used in the proof block.
+                return f"Error! YAML file is invalid: line {vars_line}: vars include unused symbols: {extra}"  # Report extra unused theorem vars at the vars field.
         else:  # Auto-detect theorem vars from the proof block when vars is omitted.
-            section_vars = _normalized_detected_vars("\n".join(_strip_inline_comment(row) for row in step_lines))  # Infer symbols from the proof content while ignoring inline comments.
+            section_vars = detected_section_vars  # Reuse the normalized proof-block symbol detection when theorem vars are omitted.
         previous_rhs: str | None = None  # Track the previous step result for proof chaining within this section.
         for index, raw_step in enumerate(step_lines):  # Validate each proof step in order.
             step_line = eq_line + index  # Map the proof-step index back to its YAML line number.

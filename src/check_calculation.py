@@ -61,12 +61,13 @@ def is_calculation_correct(symbol_list: list[str], symbol_val: list[float], equa
 
         if not math.isfinite(actual_value):  # Require a finite computed actual value.
             return False  # Reject inf and nan computed results.
-        if actual_value == 0.0:  # Guard against division by zero in relative-error calculation.
-            return False  # Return False because the required relative-error formula is undefined at zero.
         if not math.isfinite(float(expected_value)):  # Require a finite expected value.
             return False  # Reject inf and nan expected results.
+        expected_float = float(expected_value)  # Normalize the expected value once before the final tolerance comparison.
+        if actual_value == 0.0:  # Handle zero-valued calculations before applying the usual relative-error formula.
+            return expected_float == 0.0  # Accept exact zero calculations instead of rejecting them because the relative-error formula divides by actual_value.
 
-        relative_error = abs((actual_value - float(expected_value)) / actual_value)  # Compute the required absolute relative error.
+        relative_error = abs((actual_value - expected_float) / actual_value)  # Compute the required absolute relative error.
         return relative_error < float(tolerance)  # Return True exactly when the required strict inequality holds.
     except Exception:  # Keep parser, substitution, and numeric errors from escaping the public API.
         return False  # Report unsupported or invalid input as not proven correct.
