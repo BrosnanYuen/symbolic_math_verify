@@ -127,6 +127,7 @@ def _expression_matches_known(candidate: str, candidate_vars: list[str], known_e
 def verify_yaml_file(file_path: str) -> str:
     """Verify YAML structure, symbolic proofs, and calculations from a YAML file path."""  # Document the public YAML verification entry point.
     from .check_substitution import is_substitution_correct  # Import substitution checking locally so this new feature stays scoped to this function.
+    from .check_subscript_substitution import is_subscript_substitution_correct  # Import subscript substitution checking locally so colon proof steps stay scoped to this function.
 
     def _remember_known_equation(equation_text: str, equation_vars: list[str], line_number: int, source_name: str) -> None:  # Record equations and their sides for later theorem and calculation checks.
         known_equations.append({"equation": equation_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the full equation so later proof steps can reference it.
@@ -211,16 +212,29 @@ def verify_yaml_file(file_path: str) -> str:
             step_left, rhs_text = [part.strip() for part in clean_step.split("->", 1)]  # Split the proof line into its left input and right output equations.
             if not rhs_text:  # Require the proof step to provide a non-empty result equation.
                 return f"Error! Math proofs are invalid: line {step_line}: proof step right-hand side cannot be empty"  # Reject proof steps that omit the result equation.
-            if step_left.count(";") > 1:  # Allow at most one explicit substitution marker per proof step.
+            semicolon_count = step_left.count(";")  # Count ordinary substitution markers so malformed steps can be rejected precisely.
+            colon_count = step_left.count(":")  # Count subscript substitution markers so malformed steps can be rejected precisely.
+            if semicolon_count > 1:  # Allow at most one explicit ordinary substitution marker per proof step.
                 return f"Error! Math proofs are invalid: line {step_line}: proof step can contain at most one ';' substitution marker"  # Reject ambiguous multi-substitution step syntax.
-            substitution_text: str | None = None  # Default to ordinary equivalence checking when no substitution marker is present.
+            if colon_count > 1:  # Allow at most one explicit subscript substitution marker per proof step.
+                return f"Error! Math proofs are invalid: line {step_line}: proof step can contain at most one ':' subscript substitution marker"  # Reject ambiguous multi-subscript step syntax.
+            if semicolon_count and colon_count:  # Disallow mixing ordinary substitution and subscript substitution in the same step.
+                return f"Error! Math proofs are invalid: line {step_line}: proof step cannot mix ';' and ':' substitution markers"  # Reject ambiguous mixed substitution syntax.
+            substitution_text: str | None = None  # Default to ordinary substitution being absent unless a semicolon marker is present.
+            subscript_text: str | None = None  # Default to subscript substitution being absent unless a colon marker is present.
             lhs_text = step_left  # Start with the whole left side and refine it if a substitution marker exists.
-            if ";" in step_left:  # Handle proof steps that explicitly request substitution checking.
+            if ";" in step_left:  # Handle proof steps that explicitly request ordinary substitution checking.
                 lhs_text, substitution_text = [part.strip() for part in step_left.split(";", 1)]  # Split the step into the source equation and the substitution equation.
                 if not lhs_text:  # Require the source equation before the substitution marker.
                     return f"Error! Math proofs are invalid: line {step_line}: substitution source equation cannot be empty"  # Reject proof steps that start with a bare semicolon.
                 if not substitution_text:  # Require the substitution equation after the substitution marker.
                     return f"Error! Math proofs are invalid: line {step_line}: substitution equation cannot be empty"  # Reject proof steps that omit the substitution equation.
+            elif ":" in step_left:  # Handle proof steps that explicitly request subscript substitution checking.
+                lhs_text, subscript_text = [part.strip() for part in step_left.split(":", 1)]  # Split the step into the source equation and the requested subscript suffix.
+                if not lhs_text:  # Require the source equation before the subscript marker.
+                    return f"Error! Math proofs are invalid: line {step_line}: subscript substitution source equation cannot be empty"  # Reject proof steps that start with a bare colon.
+                if not subscript_text:  # Require the subscript suffix after the subscript marker.
+                    return f"Error! Math proofs are invalid: line {step_line}: subscript substitution suffix cannot be empty"  # Reject proof steps that omit the requested subscript suffix.
             elif not lhs_text:  # Require ordinary proof steps to provide a non-empty input equation.
                 return f"Error! Math proofs are invalid: line {step_line}: proof step left-hand side cannot be empty"  # Reject proof steps that omit the input equation.
             if index == 0:  # The first step must start from an axiom or a previously proven theorem.
@@ -235,6 +249,19 @@ def verify_yaml_file(file_path: str) -> str:
                     return f"Error! Math proofs are invalid: line {step_line}: substitution equation must match an axiom or prior theorem equation"  # Reject substitutions based on unknown relations.
                 if not is_substitution_correct(section_vars, lhs_text, substitution_text, rhs_text):  # Delegate the mathematical substitution proof to the existing substitution checker.
                     return f"Error! Math proofs are invalid: line {step_line}: substitution is not correct"  # Reject incorrect substitution steps.
+            elif subscript_text is not None:  # Use subscript substitution checking only when the step explicitly uses ':'.
+                try:  # Parse the source equation so the subscript checker receives only the original symbols that actually appear before substitution.
+                    section_symbol_map = _build_symbol_map(section_vars)  # Build parser symbols from the theorem's declared variable list.
+                    section_parse_locals = _build_parse_locals(section_symbol_map)  # Build the parser namespace needed to read the source equation.
+                    lhs_residual = _parse_equation(lhs_text, section_parse_locals)  # Parse the source equation so we can inspect the original free symbols it uses.
+                except Exception:  # Treat parser failures inside subscript steps as invalid proof syntax rather than raising.
+                    lhs_residual = None  # Fall back to a None sentinel so the next guard can report a precise proof error.
+                if lhs_residual is None:  # Reject subscript steps whose source equation cannot be parsed as a SymPy equation.
+                    return f"Error! Math proofs are invalid: line {step_line}: subscript substitution source equation is not a valid SymPy equation"  # Report an explicit parse failure for the colon step source equation.
+                lhs_symbol_names = {symbol.name for symbol in lhs_residual.free_symbols}  # Collect the unsuffixed symbols that actually appear in the source equation.
+                original_symbol_names = [symbol_name for symbol_name in section_vars if symbol_name in lhs_symbol_names]  # Preserve section order while passing only the original source-equation symbols to the checker.
+                if not is_subscript_substitution_correct(original_symbol_names, lhs_text, subscript_text, rhs_text):  # Delegate the mathematical subscript substitution proof to the dedicated checker with only the pre-substitution symbols.
+                    return f"Error! Math proofs are invalid: line {step_line}: subscript substitution is not correct"  # Reject incorrect subscript substitution steps.
             elif not is_equation_equal(section_vars, lhs_text, rhs_text):  # Preserve ordinary symbolic-equivalence checking for non-substitution steps.
                 return f"Error! Math proofs are invalid: line {step_line}: symbolic transformation is not equivalent"  # Reject invalid non-substitution proof steps.
             previous_rhs = rhs_text  # Advance the proof chain to the current step result.
