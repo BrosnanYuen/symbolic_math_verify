@@ -9,6 +9,7 @@ from src.check_util import is_equation_equal
 from src.check_substitution import is_substitution_correct
 from src.check_subscript_substitution import is_subscript_substitution_correct
 from src.check_calculation import is_calculation_correct
+from src.extract_variables import extract_variables
 from src.verify_yaml import verify_yaml_file
 ```
 
@@ -248,6 +249,53 @@ result = is_subscript_substitution_correct(
 )
 
 print(result)  # False
+```
+
+### `extract_variables(math_expression: str) -> list[str]`
+
+Returns a list of variable names found in a math-like string, in any order.
+
+The extractor:
+
+- includes symbols such as `x`, `g_i`, `U_alpha`, and `q_1`
+- ignores recognized function names such as `sin`, `cos`, `sqrt`, `exp`, `ln`, `log`, `abs`, `integrate`, `diff`, `gamma`, `factorial`, `sum`, `laplace_transform`, and `fourier_transform`
+- ignores constants such as `e`, `pi`, `π`, and numeric literals
+- works on ordinary expressions as well as proof-style strings containing `->`, `;`, and `:`
+
+Import it with:
+
+```python
+from src.extract_variables import extract_variables
+```
+
+Basic usage:
+
+```python
+from src.extract_variables import extract_variables
+
+result = extract_variables("sin(x) = c*exp(y) + g_i + 4")
+
+print(result)  # ["x", "c", "y", "g_i"] in any order
+```
+
+Proof-step example:
+
+```python
+from src.extract_variables import extract_variables
+
+result = extract_variables("P = I*V ; V = I*R -> P = R*I^2")
+
+print(result)  # ["P", "I", "V", "R"] in any order
+```
+
+Subscript-substitution example:
+
+```python
+from src.extract_variables import extract_variables
+
+result = extract_variables("U = m*g*h : _alpha -> U_alpha = m_alpha*g_alpha*h_alpha")
+
+print(result)  # ["U", "m", "g", "h", "U_alpha", "m_alpha", "g_alpha", "h_alpha"] in any order
 ```
 
 ### `verify_yaml_file(file_path: str) -> str`
