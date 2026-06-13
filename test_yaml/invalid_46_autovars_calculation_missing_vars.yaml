@@ -1,0 +1,13 @@
+axioms:
+  relation:
+    equation: "a = b"
+proof:
+  equation: |+
+    a = b -> b = a
+calculations:
+  calculate_result:
+    values: [3.0]
+    equation: "b + 1"
+    tolerance: 0.001
+    expected_value: 4.0
+    expected_symbol: "result"

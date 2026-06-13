@@ -1,0 +1,6 @@
+axioms:
+  exp_log:
+    equation: "y = exp(x)"
+proof2:
+  equation: |+
+    y = exp(x) -> x = log(y)

@@ -1,0 +1,6 @@
+axioms:
+  relation:
+    equation: "a = b"
+proof:
+  equation: |+
+    c = d -> d = c

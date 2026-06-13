@@ -1,0 +1,6 @@
+axioms:
+  kinetic_gravitational_potential_energy:
+    equation: "E = U + K"
+energy_alpha:
+  equation: |+
+    E = U + K : _alpha1 -> E_alpha1 = U_alpha1 + K_alpha1

@@ -1,0 +1,7 @@
+axioms:
+  relation:
+    equation: "a = b"
+proof:
+  equation: |+
+    a = b -> a - b = 0
+    a - b = 0 -> b - a = 0

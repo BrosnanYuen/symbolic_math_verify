@@ -1,0 +1,5 @@
+axioms:
+  first:
+    equation: "p = q"
+  second:
+    equation: "K = m*v"

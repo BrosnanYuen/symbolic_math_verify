@@ -1,0 +1,9 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+theorem_one:
+  equation: |+
+    x = y -> y = x
+theorem_two:
+  equation: |+
+    y = x -> x = y

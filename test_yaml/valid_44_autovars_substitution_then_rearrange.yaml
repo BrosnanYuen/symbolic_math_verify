@@ -1,0 +1,9 @@
+axioms:
+  voltage_current_resistance_equation:
+    equation: "V = I*R"
+  electrical_power_equation:
+    equation: "P = V*I"
+electrical_current_resistance_power_equation:
+  equation: |+
+    P = V*I ; V = I*R -> P = (I^2)*R
+    P = (I^2)*R -> P/R = (I^2)

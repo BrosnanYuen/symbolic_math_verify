@@ -1,0 +1,6 @@
+axioms:
+  base:
+    equation: "x = y"
+theorem:
+  equation: |+
+    x = y -> y = x

@@ -1,0 +1,6 @@
+axioms:
+  kinetic_gravitational_potential_energy:
+    equation: "E = U + K"
+energy_initial:
+  equation: |+
+    E = U + K : -> E_i = U_i + K_i

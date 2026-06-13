@@ -1,0 +1,11 @@
+axioms:
+  define_sum:
+    equation: "z = x + y"
+calculations:
+  calc_z:
+    vars: ["x", "y"]
+    values: [3.0, 4.0]
+    equation: "x + y"
+    tolerance: 0.001
+    expected_value: 7.0
+    expected_symbol: "z"

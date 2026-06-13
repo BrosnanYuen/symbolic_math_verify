@@ -1,0 +1,6 @@
+axioms:
+  tsiolkovsky_rocket_equation:
+    equation: "delta_v = v_e * ln(m_0/m_f)"
+equation_propellant_mass:
+  equation: |+
+    delta_v = v_e * ln(m_0/m_f) -> delta_v*v_e = ln(m_0/m_f)

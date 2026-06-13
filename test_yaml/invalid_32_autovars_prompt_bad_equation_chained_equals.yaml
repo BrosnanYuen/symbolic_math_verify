@@ -1,0 +1,3 @@
+axioms:
+  conservation_of_energy:
+    equation: "E_i = E_f = E_s"

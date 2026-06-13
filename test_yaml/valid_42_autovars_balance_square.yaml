@@ -1,0 +1,6 @@
+axioms:
+  sq:
+    equation: "y = x^2"
+proof3:
+  equation: |+
+    y = x^2 -> y - x^2 = 0

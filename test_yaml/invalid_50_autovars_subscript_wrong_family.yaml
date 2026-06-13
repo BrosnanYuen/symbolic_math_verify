@@ -1,0 +1,6 @@
+axioms:
+  kinetic_energy:
+    equation: "K = (1/2)*m*v^2"
+kinetic_initial:
+  equation: |+
+    K = (1/2)*m*v^2 : _i -> K_j = (1/2)*m_j*((v_j)^2)

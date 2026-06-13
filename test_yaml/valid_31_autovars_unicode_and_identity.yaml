@@ -1,0 +1,6 @@
+axioms:
+  force_relation:
+    equation: "F = m×a"
+proof_force:
+  equation: |+
+    F = m×a -> F = m*a
