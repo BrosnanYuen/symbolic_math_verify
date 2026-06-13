@@ -1,0 +1,17 @@
+axioms:
+  equation_axiom:
+    equation: "y + q = x + z"
+  equation_axiom2:
+    equation: "y = q"
+underscore_theorem:
+  equation: |+
+    y + q = x + z ; y = q -> 2*q = x + z
+    2*q = x + z -> q = 0.5*(z + x)
+calculations:
+  zero_calc:
+    vars: ["x", "z"]
+    values: [7.0, -7.0]
+    equation: "0.5*(z + x)"
+    tolerance: 0.001
+    expected_value: 0.0
+    expected_symbol: "q"

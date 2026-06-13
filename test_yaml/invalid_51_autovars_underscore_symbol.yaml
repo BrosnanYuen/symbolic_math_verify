@@ -1,0 +1,3 @@
+axioms:
+  underscore_axiom:
+    equation: "_x = 1"

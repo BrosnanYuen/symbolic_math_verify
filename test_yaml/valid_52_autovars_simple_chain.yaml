@@ -1,0 +1,6 @@
+axioms:
+  simple_balance:
+    equation: "a = b"
+balance_theorem:
+  equation: |+
+    a = b -> b = a

@@ -1,0 +1,6 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+noop_substitution_theorem:
+  equation: |+
+    x = y ; z = 2 -> x = y

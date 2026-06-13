@@ -1,0 +1,7 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+extra_vars_theorem:
+  vars: ["x", "y", "z"]
+  equation: |+
+    x = y -> y = x
