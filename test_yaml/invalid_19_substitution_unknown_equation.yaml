@@ -1,0 +1,15 @@
+axioms:
+  voltage_current_resistance_equation:
+    vars: ["V", "I", "R"]
+    equation: "V = I*R"
+  electrical_power_equation:
+    vars: ["V", "I", "P"]
+    equation: "P = V*I"
+rearrange_equation:
+  vars: ["V", "I", "R"]
+  equation: |+
+    V = I*R -> I = V/R
+electrical_current_resistance_power_equation:
+  vars: ["V", "I", "P", "R", "Q", "C"]
+  equation: |+
+    P = V*I ; V = Q/C -> P = (Q/C)*R
