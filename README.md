@@ -306,10 +306,17 @@ Reads and validates a YAML file containing:
 - proof/theorem sections
 - optional `calculations`
 
+In YAML files:
+
+- `vars` is optional for axioms
+- `vars` is optional for proof/theorem sections
+- when omitted, `verify_yaml_file()` uses `extract_variables()` to auto-detect symbols from the axiom equation or proof block
+- `vars` is still required for `calculations`
+
 Validation includes:
 
 - YAML syntax and required keys
-- Symbol and equation validity for axioms
+- Symbol auto-detection or explicit symbol validation for axioms and theorem sections
 - Proof-step chaining and symbolic equivalence checks
 - Proof-step substitution checks using `;` and `is_substitution_correct()`
 - Proof-step subscript substitution checks using `:` and `is_subscript_substitution_correct()`
@@ -336,6 +343,46 @@ Return values:
 - `Error! YAML file is invalid: line <n>: <reason>`
 - `Error! Math proofs are invalid: line <n>: <reason>`
 - `Error! Calculations are invalid: line <n>: <reason>`
+
+Minimal valid YAML with explicit `vars`:
+
+```yaml
+axioms:
+  axiom_name:
+    vars: ["x", "y"]
+    equation: "x = y"
+theorem_name:
+  vars: ["x", "y"]
+  equation: |+
+    x = y -> y = x
+calculations:
+  calc_name:
+    vars: ["x"]
+    values: [3.0]
+    equation: "x + 1"
+    tolerance: 0.001
+    expected_value: 4.0
+    expected_symbol: "result"
+```
+
+Minimal valid YAML with auto-detected `vars` for axioms and theorem sections:
+
+```yaml
+axioms:
+  axiom_name:
+    equation: "x = y"
+theorem_name:
+  equation: |+
+    x = y -> y = x
+calculations:
+  calc_name:
+    vars: ["x"]
+    values: [3.0]
+    equation: "x + 1"
+    tolerance: 0.001
+    expected_value: 4.0
+    expected_symbol: "result"
+```
 
 YAML proof blocks support three proof-step forms:
 
@@ -364,10 +411,8 @@ Valid subscript-substitution-step example:
 ```yaml
 axioms:
   kinetic_gravitational_potential_energy:
-    vars: ["E", "U", "K"]
     equation: "E = U + K"
 energy_initial:
-  vars: ["E", "U", "K", "E_i", "U_i", "K_i"]
   equation: |+
     E = U + K : _i -> E_i = U_i + K_i
 ```
@@ -400,13 +445,10 @@ Valid substitution-step example:
 ```yaml
 axioms:
   voltage_current_resistance_equation:
-    vars: ["V", "I", "R"]
     equation: "V = I*R"
   electrical_power_equation:
-    vars: ["V", "I", "P"]
     equation: "P = V*I"
 electrical_current_resistance_power_equation:
-  vars: ["V", "I", "P", "R"]
   equation: |+
     P = V*I ; V = I*R -> P = (I^2)*R
 ```
@@ -440,14 +482,16 @@ YAML fixtures for verifier tests are stored in:
 
 - `test_yaml/valid_*.yaml`
 - `test_yaml/invalid_*.yaml`
+- `test_yaml/valid_*_autovars_*.yaml`
+- `test_yaml/invalid_*_autovars_*.yaml`
 
 `tests/tests_verify_yaml.py` runs these fixtures and checks:
 
 - valid files return `Math proofs are valid`
 - invalid files return `Error! ...`
 - valid/invalid fixture counts are equal
-- substitution fixtures under `valid_18_*.yaml` to `valid_21_*.yaml` and `invalid_18_*.yaml` to `invalid_21_*.yaml` are included in the same test sweep
-- subscript substitution fixtures under `valid_22_*.yaml` to `valid_25_*.yaml` and `invalid_22_*.yaml` to `invalid_25_*.yaml` are included in the same test sweep
+- legacy missing-`vars` YAML fixtures that are now valid under auto-detection are treated as valid expectations in the test sweep
+- auto-detected-vars fixtures are included alongside the explicit-vars fixtures
 
 ## Arguments
 

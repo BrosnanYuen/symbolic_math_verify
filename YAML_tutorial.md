@@ -40,7 +40,6 @@ If everything is correct, it returns:
 ```yaml
 axioms:
   conservation_of_energy:
-    vars: ["E_i", "E_f"]
     equation: "E_i = E_f"
 ```
 
@@ -53,11 +52,9 @@ Use this shape:
 ```yaml
 axioms:
   axiom_name:
-    vars: ["x", "y"]
     equation: "x = y"
 
 theorem_name:
-  vars: ["x", "y"]
   equation: |+
     x = y -> y = x
 
@@ -75,9 +72,13 @@ Rules:
 
 - The top level must be a YAML mapping.
 - `axioms` must exist and must be a mapping.
-- Each axiom must have `vars` and `equation`.
-- Each theorem/proof section must have `vars` and `equation`.
+- Each axiom must have `equation`.
+- Each theorem/proof section must have `equation`.
+- In axioms, `vars` is optional and usually should be omitted.
+- In theorem/proof sections, `vars` is optional and usually should be omitted.
+- When omitted, the verifier auto-detects symbols with `extract_variables()`.
 - `calculations` is optional, but if present it must be a mapping.
+- In `calculations`, `vars` is still required.
 
 ## Symbol Rules
 
@@ -97,10 +98,12 @@ Bad examples:
 
 Important constraints:
 
-- In axioms, `vars` must include every symbol used in the equation.
-- In axioms, `vars` must not include extra unused symbols.
-- In theorem sections, it is safest to include every symbol that appears anywhere in that section.
-- For subscript substitution steps, include both the original symbols and the subscripted symbols that appear on the right-hand side.
+- Strong preference: do not write `vars` for axioms.
+- Strong preference: do not write `vars` for theorem sections.
+- When `vars` is omitted in axioms or theorem sections, the verifier auto-detects symbols from the equation text or proof block.
+- If you do provide `vars` explicitly in an axiom, it must include every symbol used in the equation and must not include extra unused symbols.
+- If you do provide `vars` explicitly in a theorem section, it should include every symbol that appears anywhere in that section.
+- For subscript substitution steps, auto-detection can pick up both the original symbols and the subscripted symbols that appear on the right-hand side, so explicit theorem `vars` are usually unnecessary.
 
 ## Equation Rules
 
@@ -251,13 +254,13 @@ When an LLM writes a theorem section, use this process.
    - subscript substitution using a suffix
 3. Write exactly one proof step per line.
 4. Make sure each next line starts from the previous line's result.
-5. Keep all symbols declared in the section's `vars`.
+5. Prefer omitting `vars` and let the verifier auto-detect theorem symbols.
+6. If you choose to provide `vars` explicitly, make sure every symbol used in the section is included.
 
 Template:
 
 ```yaml
 theorem_name:
-  vars: ["a", "b", "c"]
   equation: |+
     known_equation -> equivalent_equation
     equivalent_equation ; substitution_equation -> substituted_equation
@@ -269,10 +272,8 @@ theorem_name:
 ```yaml
 axioms:
   tsiolkovsky_rocket_equation:
-    vars: ["delta_v", "v_e", "m_0", "m_f"]
     equation: "delta_v = v_e * ln(m_0/m_f)"
 equation_propellant_mass:
-  vars: ["delta_v", "v_e", "m_0", "m_f"]
   equation: |+
     delta_v = v_e * ln(m_0/m_f) -> delta_v/v_e = ln(m_0/m_f)
     delta_v/v_e = ln(m_0/m_f) -> exp(delta_v/v_e) = m_0/m_f
@@ -284,17 +285,13 @@ equation_propellant_mass:
 ```yaml
 axioms:
   voltage_current_resistance_equation:
-    vars: ["V", "I", "R"]
     equation: "V = I*R"
   electrical_power_equation:
-    vars: ["V", "I", "P"]
     equation: "P = V*I"
 rearrange_equation:
-  vars: ["V", "I", "R"]
   equation: |+
     V = I*R -> I = V/R
 electrical_current_resistance_power_equation:
-  vars: ["V", "I", "P", "R"]
   equation: |+
     P = V*I ; I = V/R -> P = (V^2)/R
 ```
@@ -304,20 +301,15 @@ electrical_current_resistance_power_equation:
 ```yaml
 axioms:
   kinetic_energy:
-    vars: ["K", "m", "v"]
     equation: "K = (1/2)*m*v^2"
   gravitational_potential_energy:
-    vars: ["U", "m", "g", "h"]
     equation: "U = m*g*h"
   kinetic_gravitational_potential_energy:
-    vars: ["E", "U", "K"]
     equation: "E = U + K"
 kinetic_initial:
-  vars: ["K", "m", "v", "K_i", "m_i", "v_i"]
   equation: |+
     K = (1/2)*m*v^2 : _i -> K_i = (1/2)*m_i*((v_i)^2)
 energy_initial:
-  vars: ["E", "U", "K", "E_i", "U_i", "K_i", "m_i", "v_i", "g_i", "h_i"]
   equation: |+
     E = U + K : _i -> E_i = U_i + K_i
 ```
@@ -364,17 +356,31 @@ This fails if the known theorem only proved `m_f*exp(delta_v/v_e)`.
 
 ## Common Failure Modes
 
-### 1. Missing `vars` or `equation`
+### 1. Missing `equation`
 
 Bad:
 
 ```yaml
 axioms:
   conservation_of_energy:
+```
+
+This is invalid because `equation` is required.
+
+### 2. Explicit `vars` Are Wrong
+
+Bad:
+
+```yaml
+axioms:
+  conservation_of_energy:
+    vars: ["E_i"]
     equation: "E_i = E_f"
 ```
 
-### 2. First Proof Step Starts from an Unknown Equation
+This is invalid because explicit `vars`, when provided, still have to match the equation.
+
+### 3. First Proof Step Starts from an Unknown Equation
 
 Bad:
 
@@ -385,7 +391,7 @@ equation: |+
 
 This only works if `x = y + 1` is already an axiom or prior theorem result.
 
-### 3. Broken Proof Chain
+### 4. Broken Proof Chain
 
 Bad:
 
@@ -397,7 +403,7 @@ equation: |+
 
 The second line must start from `B`, not `C`.
 
-### 4. Substitution Equation Not Known
+### 5. Substitution Equation Not Known
 
 Bad:
 
@@ -408,7 +414,7 @@ equation: |+
 
 If `V = Q/C` is not an axiom or prior theorem equation, this fails.
 
-### 5. Substitution Not Actually Applied
+### 6. Substitution Not Actually Applied
 
 Bad:
 
@@ -417,7 +423,7 @@ equation: |+
   P = V*I ; V = I*R -> P = V*I
 ```
 
-### 6. Empty Substitution Part
+### 7. Empty Substitution Part
 
 Bad:
 
@@ -426,7 +432,7 @@ equation: |+
   P = V*I ; -> P = (I^2)*R
 ```
 
-### 7. Empty Subscript Suffix
+### 8. Empty Subscript Suffix
 
 Bad:
 
@@ -435,7 +441,7 @@ equation: |+
   E = U + K : -> E_i = U_i + K_i
 ```
 
-### 8. Empty Subscript Source
+### 9. Empty Subscript Source
 
 Bad:
 
@@ -444,7 +450,7 @@ equation: |+
   : _i -> E_i = U_i + K_i
 ```
 
-### 9. Wrong Subscript Family
+### 10. Wrong Subscript Family
 
 Bad:
 
@@ -453,7 +459,7 @@ equation: |+
   K = (1/2)*m*v^2 : _i -> K_j = (1/2)*m_i*((v_i)^2)
 ```
 
-### 10. Calculation Expression Not Proven Earlier
+### 11. Calculation Expression Not Proven Earlier
 
 Bad:
 
@@ -473,15 +479,15 @@ When generating a proof file, follow this checklist.
 
 ### Axiom Checklist
 
-- Every axiom has `vars`
 - Every axiom has `equation`
-- Every symbol in the axiom equation appears in `vars`
-- No extra unused symbols are listed in axiom `vars`
+- Prefer omitting `vars`
+- If `vars` is provided explicitly, every symbol in the axiom equation appears in `vars`
+- If `vars` is provided explicitly, no extra unused symbols are listed in axiom `vars`
 
 ### Theorem Checklist
 
-- The theorem has `vars`
 - The theorem has an `equation` block with `|+`
+- Prefer omitting `vars`
 - The first step starts from a known equation
 - Every next step starts from the previous result
 - Each step uses exactly one of:
@@ -489,7 +495,7 @@ When generating a proof file, follow this checklist.
   - `; ... ->`
   - `: ... ->`
 - Do not mix `;` and `:` in one line
-- Every symbol used anywhere in the theorem appears in `vars`
+- If `vars` is provided explicitly, every symbol used anywhere in the theorem appears in `vars`
 
 ### Calculation Checklist
 
@@ -505,30 +511,27 @@ If you are an LLM and need to write a valid proof file, do this:
 2. Decide the exact theorem target equation.
 3. Break the proof into tiny verifier-friendly steps.
 4. Prefer many small algebraic steps over one large clever jump.
-5. Use `;` only when substituting with a known equation.
-6. Use `:` only when applying a uniform subscript suffix.
-7. After writing each step, check that the next line starts from the previous right-hand side.
-8. Only add calculations after the symbolic proof already contains the target expression.
+5. Strongly prefer omitting `vars` in axioms and theorem sections.
+6. Use `;` only when substituting with a known equation.
+7. Use `:` only when applying a uniform subscript suffix.
+8. After writing each step, check that the next line starts from the previous right-hand side.
+9. Only add calculations after the symbolic proof already contains the target expression.
 
 ## Safe Template for New Files
 
 ```yaml
 axioms:
   axiom_one:
-    vars: ["a", "b"]
     equation: "a = b"
   axiom_two:
-    vars: ["b", "c"]
     equation: "b = c"
 
 theorem_one:
-  vars: ["a", "b", "c"]
   equation: |+
     a = b -> b = a
     b = a ; b = c -> c = a
 
 theorem_two:
-  vars: ["a", "b", "a_i", "b_i"]
   equation: |+
     a = b : _i -> a_i = b_i
 
@@ -557,6 +560,6 @@ If you want the highest success rate, optimize for:
 - simple axioms
 - small proof steps
 - strict chaining
-- exact symbol declarations
+- omitting `vars` in axioms and theorem sections unless you truly need explicit control
 - exact reuse of known equations
 - exact reuse of proven expressions for calculations

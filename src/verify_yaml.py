@@ -128,6 +128,7 @@ def verify_yaml_file(file_path: str) -> str:
     """Verify YAML structure, symbolic proofs, and calculations from a YAML file path."""  # Document the public YAML verification entry point.
     from .check_substitution import is_substitution_correct  # Import substitution checking locally so this new feature stays scoped to this function.
     from .check_subscript_substitution import is_subscript_substitution_correct  # Import subscript substitution checking locally so colon proof steps stay scoped to this function.
+    from .extract_variables import extract_variables  # Import variable extraction locally so axiom/theorem vars can be optional without changing module-level imports.
 
     def _remember_known_equation(equation_text: str, equation_vars: list[str], line_number: int, source_name: str) -> None:  # Record equations and their sides for later theorem and calculation checks.
         known_equations.append({"equation": equation_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the full equation so later proof steps can reference it.
@@ -137,6 +138,9 @@ def verify_yaml_file(file_path: str) -> str:
         left_text, right_text = split_equation  # Unpack the left and right equation sides for expression tracking.
         known_expressions.append({"expression": left_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the left side as a known expression.
         known_expressions.append({"expression": right_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the right side as a known expression.
+
+    def _normalized_detected_vars(math_expression: str) -> list[str]:  # Normalize auto-detected symbols so optional vars behave like explicit vars lists.
+        return [value.strip() for value in extract_variables(math_expression) if value.strip()]  # Trim whitespace and keep extractor order.
 
     try:  # Convert file-read failures into the public invalid-YAML result shape.
         with open(file_path, "r", encoding="utf-8") as handle:  # Open the YAML file as UTF-8 text.
@@ -170,16 +174,22 @@ def verify_yaml_file(file_path: str) -> str:
         axiom_line = ast_lines["axioms"].get(axiom_name, {}).get("_self", ast_lines["top"].get("axioms", 1))  # Recover the best available line number for this axiom.
         if not isinstance(axiom_value, dict):  # Require each axiom entry to be a mapping.
             return f"Error! YAML file is invalid: line {axiom_line}: axiom '{axiom_name}' must be a mapping"  # Reject non-mapping axiom entries.
-        if "vars" not in axiom_value:  # Require every axiom to declare its symbol list.
-            return f"Error! YAML file is invalid: line {axiom_line}: axiom '{axiom_name}' is missing vars"  # Report missing axiom vars.
         if "equation" not in axiom_value:  # Require every axiom to declare its equation text.
             return f"Error! YAML file is invalid: line {axiom_line}: axiom '{axiom_name}' is missing equation"  # Report missing axiom equations.
-        vars_line = ast_lines["axioms"].get(axiom_name, {}).get("vars", axiom_line)  # Recover the best available line number for the vars field.
-        ok, reason = _validate_vars_and_equation(axiom_value.get("vars"), axiom_value.get("equation"), vars_line)  # Reuse the shared axiom-equation validator.
+        axiom_equation = axiom_value.get("equation")  # Extract the raw axiom equation before deciding whether vars are explicit or inferred.
+        if "vars" in axiom_value:  # Preserve the existing explicit-vars behavior when the YAML provides vars.
+            axiom_vars = axiom_value.get("vars")  # Read the caller-provided symbol list.
+            validation_line = ast_lines["axioms"].get(axiom_name, {}).get("vars", axiom_line)  # Keep existing diagnostics anchored to the vars field when it exists.
+        else:  # Auto-detect vars only for axioms that omit the vars field.
+            validation_line = ast_lines["axioms"].get(axiom_name, {}).get("equation", axiom_line)  # Anchor auto-vars validation errors to the equation field.
+            if not isinstance(axiom_equation, str) or not axiom_equation.strip():  # Preserve the non-empty equation requirement before extracting variables.
+                return f"Error! YAML file is invalid: line {validation_line}: equation must be a non-empty string"  # Reject empty or non-string axiom equations.
+            axiom_vars = _normalized_detected_vars(axiom_equation)  # Infer the minimal symbol list directly from the axiom equation text.
+        ok, reason = _validate_vars_and_equation(axiom_vars, axiom_equation, validation_line)  # Reuse the shared axiom-equation validator for both explicit and inferred vars.
         if not ok:  # Stop immediately when an axiom fails schema or SymPy validation.
             return f"Error! YAML file is invalid: {reason}"  # Surface the exact validation reason and line number.
-        ax_vars = [value.strip() for value in axiom_value["vars"]]  # Normalize axiom symbol names by trimming whitespace.
-        ax_equation = axiom_value["equation"].strip()  # Normalize the axiom equation text before storing it.
+        ax_vars = [value.strip() for value in axiom_vars]  # Normalize the explicit or inferred axiom symbol names before storing them.
+        ax_equation = axiom_equation.strip()  # Normalize the axiom equation text before storing it.
         _remember_known_equation(ax_equation, ax_vars, axiom_line, axiom_name)  # Make the validated axiom available to later proofs and calculations.
 
     for top_key, top_value in loaded.items():  # Validate every theorem/proof section after axioms have been collected.
@@ -188,14 +198,8 @@ def verify_yaml_file(file_path: str) -> str:
         section_line = ast_lines["top"].get(top_key, 1)  # Recover the best available line number for this section.
         if not isinstance(top_value, dict):  # Require each theorem/proof section to be a mapping.
             return f"Error! YAML file is invalid: line {section_line}: section '{top_key}' must be a mapping"  # Reject non-mapping theorem sections.
-        if "vars" not in top_value:  # Require every theorem/proof section to declare its symbols.
-            return f"Error! YAML file is invalid: line {section_line}: section '{top_key}' is missing vars"  # Report missing theorem vars.
         if "equation" not in top_value:  # Require every theorem/proof section to declare its proof block.
             return f"Error! YAML file is invalid: line {section_line}: section '{top_key}' is missing equation"  # Report missing theorem equation blocks.
-        vars_line = ast_lines["sections"].get(top_key, {}).get("vars", section_line)  # Recover the best available line number for the theorem vars field.
-        if not isinstance(top_value.get("vars"), list) or not all(isinstance(item, str) for item in top_value.get("vars", [])):  # Require theorem vars to be a list of strings.
-            return f"Error! YAML file is invalid: line {vars_line}: vars must be a list of strings"  # Reject malformed theorem vars declarations.
-        section_vars = [value.strip() for value in top_value["vars"]]  # Normalize theorem symbol names by trimming whitespace.
         equation_block = top_value.get("equation")  # Extract the proof block text for this theorem.
         eq_line = ast_lines["sections"].get(top_key, {}).get("equation", section_line)  # Recover the best available line number for the proof block.
         if not isinstance(equation_block, str) or not equation_block.strip():  # Require a non-empty proof block string.
@@ -203,6 +207,13 @@ def verify_yaml_file(file_path: str) -> str:
         step_lines = [row for row in equation_block.splitlines() if row.strip()]  # Keep only non-empty proof-step lines from the block scalar.
         if not step_lines:  # Guard against proof blocks that contain only blank lines.
             return f"Error! YAML file is invalid: line {eq_line}: equation proof block has no steps"  # Reject proof blocks with no usable steps.
+        if "vars" in top_value:  # Preserve the existing explicit-vars behavior when the YAML provides theorem vars.
+            vars_line = ast_lines["sections"].get(top_key, {}).get("vars", section_line)  # Recover the best available line number for the theorem vars field.
+            if not isinstance(top_value.get("vars"), list) or not all(isinstance(item, str) for item in top_value.get("vars", [])):  # Require theorem vars to be a list of strings.
+                return f"Error! YAML file is invalid: line {vars_line}: vars must be a list of strings"  # Reject malformed theorem vars declarations.
+            section_vars = [value.strip() for value in top_value["vars"]]  # Normalize theorem symbol names by trimming whitespace.
+        else:  # Auto-detect theorem vars from the proof block when vars is omitted.
+            section_vars = _normalized_detected_vars("\n".join(_strip_inline_comment(row) for row in step_lines))  # Infer symbols from the proof content while ignoring inline comments.
         previous_rhs: str | None = None  # Track the previous step result for proof chaining within this section.
         for index, raw_step in enumerate(step_lines):  # Validate each proof step in order.
             step_line = eq_line + index  # Map the proof-step index back to its YAML line number.
