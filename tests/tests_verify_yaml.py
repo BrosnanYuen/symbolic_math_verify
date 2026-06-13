@@ -7,6 +7,18 @@ from src.verify_yaml import verify_yaml_file
 class TestVerifyYamlFile(unittest.TestCase):
     def setUp(self):
         self.base_dir = Path(__file__).resolve().parent.parent / "test_yaml"
+        self.new_valid_fixtures = {
+            "valid_18_substitution_basic.yaml",
+            "valid_19_substitution_then_rearrange.yaml",
+            "valid_20_substitution_from_prior_theorem.yaml",
+            "valid_21_substitution_equivalent_form.yaml",
+        }
+        self.new_invalid_fixtures = {
+            "invalid_18_substitution_not_applied.yaml",
+            "invalid_19_substitution_unknown_equation.yaml",
+            "invalid_20_substitution_missing_equation.yaml",
+            "invalid_21_substitution_missing_source.yaml",
+        }
 
     def test_valid_yaml_files(self):
         valid_files = sorted(self.base_dir.glob("valid_*.yaml"))
@@ -28,6 +40,12 @@ class TestVerifyYamlFile(unittest.TestCase):
         valid_count = len(list(self.base_dir.glob("valid_*.yaml")))
         invalid_count = len(list(self.base_dir.glob("invalid_*.yaml")))
         self.assertEqual(valid_count, invalid_count)
+
+    def test_new_substitution_yaml_files_exist(self):
+        valid_files = {path.name for path in self.base_dir.glob("valid_*.yaml")}
+        invalid_files = {path.name for path in self.base_dir.glob("invalid_*.yaml")}
+        self.assertTrue(self.new_valid_fixtures.issubset(valid_files))
+        self.assertTrue(self.new_invalid_fixtures.issubset(invalid_files))
 
 
 if __name__ == "__main__":

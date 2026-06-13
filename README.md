@@ -263,6 +263,7 @@ Validation includes:
 - YAML syntax and required keys
 - Symbol and equation validity for axioms
 - Proof-step chaining and symbolic equivalence checks
+- Proof-step substitution checks using `;` and `is_substitution_correct()`
 - Calculation equation-source checks and numeric validation
 
 Import it with:
@@ -287,6 +288,58 @@ Return values:
 - `Error! Math proofs are invalid: line <n>: <reason>`
 - `Error! Calculations are invalid: line <n>: <reason>`
 
+YAML proof blocks support two proof-step forms:
+
+- Ordinary equivalence step: `lhs_equation -> rhs_equation`
+- Substitution step: `lhs_equation ; substitute_equation -> rhs_equation`
+
+For substitution steps, `verify_yaml_file()` requires:
+
+- exactly one `;`
+- a non-empty source equation before `;`
+- a non-empty substitution equation after `;`
+- the substitution equation to match an axiom or prior theorem equation
+- `is_substitution_correct()` to prove the substitution
+
+Valid substitution-step example:
+
+```yaml
+axioms:
+  voltage_current_resistance_equation:
+    vars: ["V", "I", "R"]
+    equation: "V = I*R"
+  electrical_power_equation:
+    vars: ["V", "I", "P"]
+    equation: "P = V*I"
+electrical_current_resistance_power_equation:
+  vars: ["V", "I", "P", "R"]
+  equation: |+
+    P = V*I ; V = I*R -> P = (I^2)*R
+```
+
+Invalid substitution-step examples:
+
+```yaml
+equation: |+
+  P = V*I ; V = I*R -> P = V*I
+```
+
+The step above is invalid because the substitution is not actually applied.
+
+```yaml
+equation: |+
+  P = V*I ; -> P = (I^2)*R
+```
+
+The step above is invalid because the substitution equation is empty.
+
+```yaml
+equation: |+
+  ; V = I*R -> P = (I^2)*R
+```
+
+The step above is invalid because the source equation is empty.
+
 ## YAML Test Fixtures
 
 YAML fixtures for verifier tests are stored in:
@@ -299,6 +352,7 @@ YAML fixtures for verifier tests are stored in:
 - valid files return `Math proofs are valid`
 - invalid files return `Error! ...`
 - valid/invalid fixture counts are equal
+- substitution fixtures under `valid_18_*.yaml` to `valid_21_*.yaml` and `invalid_18_*.yaml` to `invalid_21_*.yaml` are included in the same test sweep
 
 ## Arguments
 
