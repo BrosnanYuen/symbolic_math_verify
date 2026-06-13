@@ -7,29 +7,27 @@ from src.verify_yaml import verify_yaml_file
 class TestVerifyYamlFile(unittest.TestCase):
     def setUp(self):
         self.base_dir = Path(__file__).resolve().parent.parent / "test_yaml"
-        self.new_valid_fixtures = {
-            "valid_18_substitution_basic.yaml",
-            "valid_19_substitution_then_rearrange.yaml",
-            "valid_20_substitution_from_prior_theorem.yaml",
-            "valid_21_substitution_equivalent_form.yaml",
-            "valid_22_subscript_basic.yaml",
-            "valid_23_subscript_after_symbolic_substitution.yaml",
-            "valid_24_subscript_final.yaml",
-            "valid_25_subscript_alphanumeric_suffix.yaml",
-        }
-        self.new_invalid_fixtures = {
-            "invalid_18_substitution_not_applied.yaml",
-            "invalid_19_substitution_unknown_equation.yaml",
-            "invalid_20_substitution_missing_equation.yaml",
-            "invalid_21_substitution_missing_source.yaml",
-            "invalid_22_subscript_not_applied.yaml",
-            "invalid_23_subscript_wrong_family.yaml",
-            "invalid_24_subscript_missing_suffix.yaml",
-            "invalid_25_subscript_missing_source.yaml",
+        self.promoted_valid_fixtures = {
+            "invalid_01_axiom_missing_vars.yaml",
+            "invalid_07_prompt_axiom_missing_vars.yaml",
         }
 
+    def _expected_valid_files(self) -> list[Path]:
+        valid_files = {path.name: path for path in self.base_dir.glob("valid_*.yaml")}
+        for fixture_name in self.promoted_valid_fixtures:
+            valid_files[fixture_name] = self.base_dir / fixture_name
+        return [valid_files[name] for name in sorted(valid_files)]
+
+    def _expected_invalid_files(self) -> list[Path]:
+        invalid_files = {
+            path.name: path
+            for path in self.base_dir.glob("invalid_*.yaml")
+            if path.name not in self.promoted_valid_fixtures
+        }
+        return [invalid_files[name] for name in sorted(invalid_files)]
+
     def test_valid_yaml_files(self):
-        valid_files = sorted(self.base_dir.glob("valid_*.yaml"))
+        valid_files = self._expected_valid_files()
         self.assertTrue(valid_files, "Expected at least one valid YAML test file")
         for yaml_file in valid_files:
             with self.subTest(file=yaml_file.name):
@@ -37,7 +35,7 @@ class TestVerifyYamlFile(unittest.TestCase):
                 self.assertEqual("Math proofs are valid", result)
 
     def test_invalid_yaml_files(self):
-        invalid_files = sorted(self.base_dir.glob("invalid_*.yaml"))
+        invalid_files = self._expected_invalid_files()
         self.assertTrue(invalid_files, "Expected at least one invalid YAML test file")
         for yaml_file in invalid_files:
             with self.subTest(file=yaml_file.name):
@@ -49,11 +47,22 @@ class TestVerifyYamlFile(unittest.TestCase):
         invalid_count = len(list(self.base_dir.glob("invalid_*.yaml")))
         self.assertEqual(valid_count, invalid_count)
 
-    def test_new_substitution_yaml_files_exist(self):
-        valid_files = {path.name for path in self.base_dir.glob("valid_*.yaml")}
-        invalid_files = {path.name for path in self.base_dir.glob("invalid_*.yaml")}
-        self.assertTrue(self.new_valid_fixtures.issubset(valid_files))
-        self.assertTrue(self.new_invalid_fixtures.issubset(invalid_files))
+    def test_fixture_expectations_cover_all_yaml_files(self):
+        expected_valid = {path.name for path in self._expected_valid_files()}
+        expected_invalid = {path.name for path in self._expected_invalid_files()}
+        all_yaml_files = {path.name for path in self.base_dir.glob("*.yaml")}
+        self.assertFalse(expected_valid.intersection(expected_invalid))
+        self.assertEqual(all_yaml_files, expected_valid.union(expected_invalid))
+
+    def test_autovars_yaml_files_exist(self):
+        valid_autovars = {
+            path.name for path in self.base_dir.glob("valid_*.yaml") if "_autovars_" in path.name
+        }
+        invalid_autovars = {
+            path.name for path in self.base_dir.glob("invalid_*.yaml") if "_autovars_" in path.name
+        }
+        self.assertEqual(25, len(valid_autovars))
+        self.assertEqual(25, len(invalid_autovars))
 
 
 if __name__ == "__main__":
