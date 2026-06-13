@@ -264,6 +264,7 @@ Validation includes:
 - Symbol and equation validity for axioms
 - Proof-step chaining and symbolic equivalence checks
 - Proof-step substitution checks using `;` and `is_substitution_correct()`
+- Proof-step subscript substitution checks using `:` and `is_subscript_substitution_correct()`
 - Calculation equation-source checks and numeric validation
 
 Import it with:
@@ -288,10 +289,11 @@ Return values:
 - `Error! Math proofs are invalid: line <n>: <reason>`
 - `Error! Calculations are invalid: line <n>: <reason>`
 
-YAML proof blocks support two proof-step forms:
+YAML proof blocks support three proof-step forms:
 
 - Ordinary equivalence step: `lhs_equation -> rhs_equation`
 - Substitution step: `lhs_equation ; substitute_equation -> rhs_equation`
+- Subscript substitution step: `lhs_equation : _suffix -> rhs_equation`
 
 For substitution steps, `verify_yaml_file()` requires:
 
@@ -300,6 +302,50 @@ For substitution steps, `verify_yaml_file()` requires:
 - a non-empty substitution equation after `;`
 - the substitution equation to match an axiom or prior theorem equation
 - `is_substitution_correct()` to prove the substitution
+
+For subscript substitution steps, `verify_yaml_file()` requires:
+
+- exactly one `:`
+- a non-empty source equation before `:`
+- a non-empty subscript suffix after `:`
+- the source equation to match the previous step output, or an axiom/prior theorem for the first step
+- `is_subscript_substitution_correct()` to prove the renaming
+
+Valid subscript-substitution-step example:
+
+```yaml
+axioms:
+  kinetic_gravitational_potential_energy:
+    vars: ["E", "U", "K"]
+    equation: "E = U + K"
+energy_initial:
+  vars: ["E", "U", "K", "E_i", "U_i", "K_i"]
+  equation: |+
+    E = U + K : _i -> E_i = U_i + K_i
+```
+
+Invalid subscript-substitution-step examples:
+
+```yaml
+equation: |+
+  E = U + K : _i -> E = U + K
+```
+
+The step above is invalid because the subscript substitution is not actually applied.
+
+```yaml
+equation: |+
+  E = U + K : -> E_i = U_i + K_i
+```
+
+The step above is invalid because the subscript suffix is empty.
+
+```yaml
+equation: |+
+  : _i -> E_i = U_i + K_i
+```
+
+The step above is invalid because the source equation is empty.
 
 Valid substitution-step example:
 
@@ -353,6 +399,7 @@ YAML fixtures for verifier tests are stored in:
 - invalid files return `Error! ...`
 - valid/invalid fixture counts are equal
 - substitution fixtures under `valid_18_*.yaml` to `valid_21_*.yaml` and `invalid_18_*.yaml` to `invalid_21_*.yaml` are included in the same test sweep
+- subscript substitution fixtures under `valid_22_*.yaml` to `valid_25_*.yaml` and `invalid_22_*.yaml` to `invalid_25_*.yaml` are included in the same test sweep
 
 ## Arguments
 

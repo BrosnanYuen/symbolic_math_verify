@@ -12,12 +12,20 @@ class TestVerifyYamlFile(unittest.TestCase):
             "valid_19_substitution_then_rearrange.yaml",
             "valid_20_substitution_from_prior_theorem.yaml",
             "valid_21_substitution_equivalent_form.yaml",
+            "valid_22_subscript_basic.yaml",
+            "valid_23_subscript_after_symbolic_substitution.yaml",
+            "valid_24_subscript_final.yaml",
+            "valid_25_subscript_alphanumeric_suffix.yaml",
         }
         self.new_invalid_fixtures = {
             "invalid_18_substitution_not_applied.yaml",
             "invalid_19_substitution_unknown_equation.yaml",
             "invalid_20_substitution_missing_equation.yaml",
             "invalid_21_substitution_missing_source.yaml",
+            "invalid_22_subscript_not_applied.yaml",
+            "invalid_23_subscript_wrong_family.yaml",
+            "invalid_24_subscript_missing_suffix.yaml",
+            "invalid_25_subscript_missing_source.yaml",
         }
 
     def test_valid_yaml_files(self):
