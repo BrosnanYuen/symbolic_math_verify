@@ -4,11 +4,15 @@ Symbolic math verification utilities built on SymPy.
 
 This project checks whether equations are equivalent, whether a substitution step is valid, whether a uniform subscript rename is valid, whether a numeric calculation matches an expected value, and whether a YAML proof file is valid.
 
+PyPI package: `symbolic-math-verify`
+
 ## Install
 
 ```bash
-pip install sympy pyyaml
+pip install symbolic-math-verify
 ```
+
+Import it as `symbolic_math_verify`.
 
 ## Public API
 
@@ -117,6 +121,8 @@ verify_yaml_file("test_yaml/valid_11_prompt_with_calculation.yaml")
 - optional `calculations`
 
 For axioms and theorem sections, `vars` may be omitted and will be auto-detected from the math text. For `calculations`, `vars` is required.
+
+See [YAML_tutorial.md](/home/brosnan/symbolic_math_verify/symbolic_math_verify/YAML_tutorial.md) for a full YAML proof example and validation rules.
 
 ## Notes
 
