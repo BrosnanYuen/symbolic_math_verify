@@ -10,6 +10,7 @@ import yaml
 from .check_calculation import is_calculation_correct
 from .check_util import _build_parse_locals
 from .check_util import _build_symbol_map
+from .check_util import _normalize_equation_text
 from .check_util import _parse_equation
 from .check_util import _parse_expression
 from .check_util import _proves_zero
@@ -71,7 +72,7 @@ def _validate_vars_and_equation(vars_list: Any, equation: Any, line_number: int)
         parsed = _parse_equation(equation, parse_locals)
         if parsed is None:
             return False, f"line {line_number}: equation is not a valid SymPy equation"
-        used = {symbol.name for symbol in parsed.free_symbols}
+        used = _equation_symbol_names(equation, parse_locals)
         declared = {value.strip() for value in vars_list}
         missing = sorted(used - declared)
         extra = sorted(declared - used)
@@ -82,6 +83,21 @@ def _validate_vars_and_equation(vars_list: Any, equation: Any, line_number: int)
     except Exception as exc:
         return False, f"line {line_number}: equation validation failed: {exc}"
     return True, ""
+
+
+def _equation_symbol_names(equation: str, parse_locals: dict[str, Any]) -> set[str]:
+    """Collect free-symbol names from the unsimplified equation text."""
+    normalized = _normalize_equation_text(equation)
+    split_equation = _split_equation_sides(normalized)
+    if split_equation is not None:
+        left_text, right_text = split_equation
+        left_expr = _parse_expression(left_text, parse_locals, evaluate=False)
+        right_expr = _parse_expression(right_text, parse_locals, evaluate=False)
+        return {symbol.name for symbol in left_expr.free_symbols | right_expr.free_symbols}
+    parsed_expr = _parse_expression(normalized, parse_locals, evaluate=False)
+    if getattr(parsed_expr, "is_Equality", False):
+        return {symbol.name for symbol in parsed_expr.lhs.free_symbols | parsed_expr.rhs.free_symbols}
+    return {symbol.name for symbol in parsed_expr.free_symbols}
 
 
 def _split_equation_sides(equation: str) -> tuple[str, str] | None:
@@ -162,6 +178,27 @@ def _is_identity_equation(equation_text: str, equation_vars: list[str]) -> bool:
     return _proves_zero(residual)
 
 
+def _is_trivial_identity_axiom(equation_text: str, equation_vars: list[str]) -> bool:
+    """Reject tautological axioms like x = x or 1 = 1 while allowing informative identities."""
+    if not _is_identity_equation(equation_text, equation_vars):
+        return False
+    try:
+        symbol_map = _build_symbol_map(equation_vars)
+        parse_locals = _build_parse_locals(symbol_map)
+        normalized = _normalize_equation_text(equation_text)
+        split_equation = _split_equation_sides(normalized)
+        if split_equation is None:
+            return False
+        left_text, right_text = split_equation
+        left_expr = _parse_expression(left_text, parse_locals, evaluate=False)
+        right_expr = _parse_expression(right_text, parse_locals, evaluate=False)
+    except Exception:
+        return False
+    if not left_expr.free_symbols and not right_expr.free_symbols:
+        return True
+    return left_expr == right_expr
+
+
 def verify_yaml_file(file_path: str) -> str:
     """Verify YAML structure, symbolic proofs, and calculations from a YAML file path."""  # Document the public YAML verification entry point.
     from .check_substitution import is_substitution_correct  # Import substitution checking locally so this new feature stays scoped to this function.
@@ -230,8 +267,8 @@ def verify_yaml_file(file_path: str) -> str:
             return f"Error! YAML file is invalid: {reason}"  # Surface the exact validation reason and line number.
         ax_vars = [value.strip() for value in axiom_vars]  # Normalize the explicit or inferred axiom symbol names before storing them.
         ax_equation = axiom_equation.strip()  # Normalize the axiom equation text before storing it.
-        if _is_identity_equation(ax_equation, ax_vars):  # Reject tautologies such as x = x or 1 = 1 because they do not provide a usable mathematical relation.
-            return f"Error! YAML file is invalid: line {validation_line}: equation cannot be an identity"  # Keep degenerate axioms out of the known-equation pool.
+        if _is_trivial_identity_axiom(ax_equation, ax_vars):  # Reject tautologies such as x = x or 1 = 1 while still allowing informative identities like trig identities.
+            return f"Error! YAML file is invalid: line {validation_line}: equation cannot be a trivial identity"  # Keep degenerate axioms out of the known-equation pool.
         _remember_known_equation(ax_equation, ax_vars, axiom_line, axiom_name)  # Make the validated axiom available to later proofs and calculations.
 
     for top_key, top_value in loaded.items():  # Validate every theorem/proof section after axioms have been collected.
