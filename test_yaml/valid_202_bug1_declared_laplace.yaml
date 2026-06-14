@@ -1,0 +1,7 @@
+axioms:
+  sinusoid:
+    equation: "y = sin(t)"
+
+laplace_step:
+  equation: |+
+    y = sin(t) -> laplace_transform(y(t), t, s) = laplace_transform(sin(t), t, s)

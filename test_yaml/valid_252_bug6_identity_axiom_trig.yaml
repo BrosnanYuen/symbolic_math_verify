@@ -1,0 +1,3 @@
+axioms:
+  trig_identity:
+    equation: "sin(x)^2 + cos(x)^2 = 1"
