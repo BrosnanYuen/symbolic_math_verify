@@ -1,4 +1,8 @@
 axioms:
-  conservation_of_energy:
-    vars: ["E_i", "E_f", "X"]
-    equation: "E_i = E_f"
+  relation:
+    vars: ["a", "b"]
+    equation: "a = b"
+proof:
+  vars: ["a"]
+  equation: |+
+    a = b -> b = a

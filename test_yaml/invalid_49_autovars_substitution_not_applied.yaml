@@ -5,4 +5,4 @@ axioms:
     equation: "P = V*I"
 electrical_current_resistance_power_equation:
   equation: |+
-    P = V*I ; V = I*R -> P = V*I
+    P = V*I ; V = I*R -> P = I + R
