@@ -1,0 +1,11 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+
+swap_relation:
+  equation: |+
+    x = y -> y = x
+
+recover_relation:
+  equation: |+
+    y = x -> x = y

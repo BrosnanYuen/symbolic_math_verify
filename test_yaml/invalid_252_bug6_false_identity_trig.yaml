@@ -1,0 +1,7 @@
+axioms:
+  unit_relation:
+    equation: "z = 1"
+
+bad_step:
+  equation: |+
+    z = 1 -> sin(x)^2 = 1

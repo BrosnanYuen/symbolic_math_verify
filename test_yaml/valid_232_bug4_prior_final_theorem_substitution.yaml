@@ -1,0 +1,13 @@
+axioms:
+  power_relation:
+    equation: "P = V*I"
+  ohms_law:
+    equation: "V = I*R"
+
+rearrange_current:
+  equation: |+
+    V = I*R -> I = V/R
+
+power_in_voltage_form:
+  equation: |+
+    P = V*I ; I = V/R -> P = V^2/R

@@ -1,0 +1,13 @@
+axioms:
+  residual_form:
+    vars: ["x"]
+    equation: "x - 1"
+
+calculations:
+  wrong_expression:
+    vars: ["x"]
+    values: [1.0]
+    equation: "x"
+    tolerance: 0.001
+    expected_value: 1.0
+    expected_symbol: "x"

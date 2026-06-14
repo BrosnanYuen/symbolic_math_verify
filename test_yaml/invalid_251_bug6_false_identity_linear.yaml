@@ -1,0 +1,15 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+
+swap_relation:
+  equation: |+
+    x = y -> y = x
+
+derived_identity:
+  equation: |+
+    y = x -> x = x
+
+bad_step:
+  equation: |+
+    x = x -> x = x + 1
