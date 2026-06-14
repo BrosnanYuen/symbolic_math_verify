@@ -1,0 +1,3 @@
+axioms:
+  tautology:
+    equation: "x = x"

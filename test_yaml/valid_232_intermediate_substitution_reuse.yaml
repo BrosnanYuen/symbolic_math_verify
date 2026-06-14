@@ -1,0 +1,14 @@
+axioms:
+  power_relation:
+    equation: "P = V*I"
+  ohms_law:
+    equation: "V = I*R"
+
+first_theorem:
+  equation: |+
+    V = I*R -> I = V/R
+    I = V/R -> R = V/I
+
+second_theorem:
+  equation: |+
+    P = V*I ; I = V/R -> P = V^2/R

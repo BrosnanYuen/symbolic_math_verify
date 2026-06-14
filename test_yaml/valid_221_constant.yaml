@@ -1,0 +1,7 @@
+axioms:
+  euler_value:
+    equation: "x = E"
+
+good_subscript:
+  equation: |+
+    x = E : _i -> x_i = E_i

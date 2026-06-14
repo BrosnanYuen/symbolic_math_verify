@@ -1,0 +1,9 @@
+axioms:
+  base_relation:
+    vars: ["x", "y"]
+    equation: "y = x^2 + 6"
+
+derivative_step:
+  vars: ["x", "y"]
+  equation: |+
+    y = x^2 + 6 -> diff(y(x), x) = diff(x^2 + 6, x)

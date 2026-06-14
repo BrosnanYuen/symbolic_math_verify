@@ -1,0 +1,7 @@
+axioms:
+  pi_relation:
+    equation: "x = pi"
+
+half_pi:
+  equation: |+
+    x = pi -> x/2 = pi/2

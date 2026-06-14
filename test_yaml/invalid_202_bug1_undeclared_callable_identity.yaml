@@ -1,0 +1,7 @@
+axioms:
+  tautology:
+    equation: "1 = 1"
+
+bad_transform:
+  equation: |+
+    1 = 1 -> k(1) = k(1)

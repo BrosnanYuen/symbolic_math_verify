@@ -1,0 +1,12 @@
+axioms:
+  distance_relation:
+    equation: "d = v*t"
+
+calculations:
+  eval_distance:
+    vars: ["v", "t"]
+    values: [3.0, 4.0]
+    equation: "v*t"
+    tolerance: 0.001
+    expected_value: 12.0
+    expected_symbol: "t" # Invalid should be "d"

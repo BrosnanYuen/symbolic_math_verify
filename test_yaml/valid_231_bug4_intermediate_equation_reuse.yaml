@@ -1,0 +1,12 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+
+first_theorem:
+  equation: |+
+    x = y -> y = x
+    y = x -> x - y = 0
+
+second_theorem:
+  equation: |+
+    y = x -> x = y

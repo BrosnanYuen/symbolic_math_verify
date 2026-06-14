@@ -1,0 +1,4 @@
+axioms:
+  malformed_identifier:
+    vars: ["_x", "bad-name"]
+    equation: "_x = bad-name"
