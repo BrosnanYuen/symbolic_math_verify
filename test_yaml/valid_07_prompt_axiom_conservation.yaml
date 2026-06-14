@@ -1,4 +1,4 @@
 axioms:
-  conservation_of_energy:
-    vars: ["E_i", "E_f"]
-    equation: "E_i = E_f"
+  conservation_of_momentum:
+    vars: ["p_i", "p_f"]
+    equation: "p_i = p_f"

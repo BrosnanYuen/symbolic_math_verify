@@ -1,3 +1,3 @@
 axioms:
-  conservation_of_energy:
-    equation: "E_i = E_f"
+  conservation_of_momentum:
+    equation: "p_i = p_f"

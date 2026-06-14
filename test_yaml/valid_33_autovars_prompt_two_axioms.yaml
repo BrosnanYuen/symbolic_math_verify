@@ -1,5 +1,5 @@
 axioms:
-  conservation_of_energy:
-    equation: "E_i = E_f"
-  kinetic_energy:
-    equation: "K = (1/2)*m*v^2"
+  voltage_current_resistance_equation:
+    equation: "V = I*R"
+  electrical_power_equation:
+    equation: "P = V*I"
