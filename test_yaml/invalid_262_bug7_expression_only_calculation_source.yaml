@@ -1,0 +1,13 @@
+axioms:
+  residual_form:
+    vars: ["y"]
+    equation: "y - 1"
+
+calculations:
+  eval_residual:
+    vars: ["y"]
+    values: [1.0]
+    equation: "y - 1"
+    tolerance: 0.001
+    expected_value: 0.0
+    expected_symbol: "residual"
