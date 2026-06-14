@@ -1,6 +1,6 @@
 import unittest
 
-from src.check_util import is_equation_equal
+from symbolic_math_verify.check_util import is_equation_equal
 
 
 class TestIsEquationEqualTrueCases(unittest.TestCase):

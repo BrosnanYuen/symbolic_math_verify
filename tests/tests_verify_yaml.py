@@ -4,7 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 
-from src.verify_yaml import verify_yaml_file
+from symbolic_math_verify.verify_yaml import verify_yaml_file
 
 
 def _verify_yaml_fixture(file_path: str) -> tuple[str, str]:

@@ -13,12 +13,12 @@ pip install sympy pyyaml
 ## Public API
 
 ```python
-from src.check_util import is_equation_equal
-from src.check_substitution import is_substitution_correct
-from src.check_subscript_substitution import is_subscript_substitution_correct
-from src.check_calculation import is_calculation_correct
-from src.extract_variables import extract_variables
-from src.verify_yaml import verify_yaml_file
+from symbolic_math_verify import extract_variables
+from symbolic_math_verify import is_calculation_correct
+from symbolic_math_verify import is_equation_equal
+from symbolic_math_verify import is_subscript_substitution_correct
+from symbolic_math_verify import is_substitution_correct
+from symbolic_math_verify import verify_yaml_file
 ```
 
 ## What It Does
@@ -41,7 +41,7 @@ from src.verify_yaml import verify_yaml_file
 Equation equivalence:
 
 ```python
-from src.check_util import is_equation_equal
+from symbolic_math_verify import is_equation_equal
 
 is_equation_equal(["x"], "x + 2 = 5", "x = 3")
 # True
@@ -50,7 +50,7 @@ is_equation_equal(["x"], "x + 2 = 5", "x = 3")
 Substitution:
 
 ```python
-from src.check_substitution import is_substitution_correct
+from symbolic_math_verify import is_substitution_correct
 
 is_substitution_correct(
     ["x", "y", "z"],
@@ -64,7 +64,7 @@ is_substitution_correct(
 Subscript substitution:
 
 ```python
-from src.check_subscript_substitution import is_subscript_substitution_correct
+from symbolic_math_verify import is_subscript_substitution_correct
 
 is_subscript_substitution_correct(
     ["E", "m", "v"],
@@ -78,7 +78,7 @@ is_subscript_substitution_correct(
 Calculation:
 
 ```python
-from src.check_calculation import is_calculation_correct
+from symbolic_math_verify import is_calculation_correct
 
 is_calculation_correct(
     ["x", "y", "z"],
@@ -93,7 +93,7 @@ is_calculation_correct(
 Variable extraction:
 
 ```python
-from src.extract_variables import extract_variables
+from symbolic_math_verify import extract_variables
 
 extract_variables("P = I*V ; V = I*R -> P = R*I^2")
 # ['P', 'I', 'V', 'R']
@@ -102,7 +102,7 @@ extract_variables("P = I*V ; V = I*R -> P = R*I^2")
 YAML verification:
 
 ```python
-from src.verify_yaml import verify_yaml_file
+from symbolic_math_verify import verify_yaml_file
 
 verify_yaml_file("test_yaml/valid_11_prompt_with_calculation.yaml")
 # "Math proofs are valid"

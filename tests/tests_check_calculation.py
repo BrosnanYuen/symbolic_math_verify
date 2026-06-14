@@ -1,6 +1,6 @@
 import unittest
 
-from src.check_calculation import is_calculation_correct
+from symbolic_math_verify.check_calculation import is_calculation_correct
 
 
 class TestIsCalculationCorrectTrueCases(unittest.TestCase):

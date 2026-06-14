@@ -1,13 +1,17 @@
 # PyPI Submission
 
+## Package Name
+
+The project is packaged as `symbolic-math-verify` and imported as `symbolic_math_verify`.
+
 ## Before You Submit
 
-1. Set the real project URLs in `pyproject.toml`.
-2. Confirm the version in `pyproject.toml` is new and not already on PyPI.
+1. Confirm the version in [pyproject.toml](/home/brosnan/symbolic_math_verify/symbolic_math_verify/pyproject.toml) is new.
+2. Make sure the working tree is clean.
 3. Run the test suite:
 
 ```bash
-.venv/bin/python -m unittest discover -s tests
+.venv/bin/python tests/run_parallel_unittest.py
 ```
 
 ## Build The Distribution
@@ -15,40 +19,40 @@
 Install the build tools if needed:
 
 ```bash
-python -m pip install --upgrade build twine
+.venv/bin/python -m pip install --upgrade build twine
 ```
 
-Create source and wheel distributions from the project root:
+Build the source distribution and wheel:
 
 ```bash
-python -m build
+.venv/bin/python -m build
 ```
 
-This should create:
+This creates:
 
 - `dist/symbolic_math_verify-<version>.tar.gz`
 - `dist/symbolic_math_verify-<version>-py3-none-any.whl`
 
 ## Validate The Artifacts
 
-Check the built packages before upload:
+Check the packages before upload:
 
 ```bash
-python -m twine check dist/*
+.venv/bin/python -m twine check dist/*
 ```
 
-## Upload To TestPyPI First
+## Upload To TestPyPI
 
-Upload to TestPyPI:
+Upload the build artifacts to TestPyPI first:
 
 ```bash
-python -m twine upload --repository testpypi dist/*
+.venv/bin/python -m twine upload --repository testpypi dist/*
 ```
 
-Install from TestPyPI to verify the package:
+Smoke test install from TestPyPI:
 
 ```bash
-python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple symbolic-math-verify
+.venv/bin/python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple symbolic-math-verify
 ```
 
 ## Upload To PyPI
@@ -56,28 +60,26 @@ python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-ur
 When TestPyPI looks correct, upload the same artifacts to PyPI:
 
 ```bash
-python -m twine upload dist/*
+.venv/bin/python -m twine upload dist/*
 ```
 
 ## Recommended Release Flow
 
-1. Update `pyproject.toml` version.
+1. Update the version in [pyproject.toml](/home/brosnan/symbolic_math_verify/symbolic_math_verify/pyproject.toml).
 2. Run tests.
-3. Build with `python -m build`.
-4. Validate with `python -m twine check dist/*`.
+3. Build with `.venv/bin/python -m build`.
+4. Validate with `.venv/bin/python -m twine check dist/*`.
 5. Upload to TestPyPI.
-6. Smoke test install/import.
+6. Install and import the package from TestPyPI.
 7. Upload to PyPI.
 
 ## Smoke Test
 
-After install, verify the public API:
-
 ```python
-from symbolic_math_verify import is_equation_equal
-from symbolic_math_verify import is_substitution_correct
-from symbolic_math_verify import is_subscript_substitution_correct
-from symbolic_math_verify import is_calculation_correct
 from symbolic_math_verify import extract_variables
+from symbolic_math_verify import is_calculation_correct
+from symbolic_math_verify import is_equation_equal
+from symbolic_math_verify import is_subscript_substitution_correct
+from symbolic_math_verify import is_substitution_correct
 from symbolic_math_verify import verify_yaml_file
 ```

@@ -1,6 +1,6 @@
 import unittest
 
-from src.extract_variables import extract_variables
+from symbolic_math_verify.extract_variables import extract_variables
 
 
 class TestExtractVariables(unittest.TestCase):

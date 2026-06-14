@@ -1,6 +1,6 @@
 import unittest
 
-from src.check_subscript_substitution import is_subscript_substitution_correct
+from symbolic_math_verify.check_subscript_substitution import is_subscript_substitution_correct
 
 
 class TestIsSubscriptSubstitutionCorrectTrueCases(unittest.TestCase):
