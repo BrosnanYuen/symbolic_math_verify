@@ -1,6 +1,0 @@
-axioms:
-  base_relation:
-    equation: "x = y"
-shifted_relation:
-  equation: |+
-    x = y -> x + 1 = y + 1
