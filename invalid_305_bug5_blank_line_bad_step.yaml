@@ -1,7 +1,0 @@
-axioms:
-  base_relation:
-    equation: "a = b"
-broken_chain_with_blank_line:
-  equation: |+
-    a = b -> b = a
-    b = a -> b = a + 1
