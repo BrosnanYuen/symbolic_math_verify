@@ -12,6 +12,7 @@ from .check_util import _build_parse_locals
 from .check_util import _build_symbol_map
 from .check_util import _parse_equation
 from .check_util import _parse_expression
+from .check_util import _proves_zero
 from .check_util import is_equation_equal
 
 
@@ -124,6 +125,43 @@ def _expression_matches_known(candidate: str, candidate_vars: list[str], known_e
     return False
 
 
+def _expected_symbols_for_expression(candidate: str, candidate_vars: list[str], known_expressions: list[dict[str, Any]]) -> set[str]:
+    """Return the allowed expected_symbol values for a known expression match."""
+    expected_symbols: set[str] = set()
+    for known in known_expressions:
+        combined = _union_vars(candidate_vars, known["vars"])
+        if is_equation_equal(combined, f"({candidate}) = ({known['expression']})", "0 = 0"):
+            expected_symbols.update(known.get("expected_symbols", ()))
+    return expected_symbols
+
+
+def _symbol_name_from_expression(expression_text: str) -> str | None:
+    """Return a plain symbol name when one equation side is a single identifier."""
+    candidate = expression_text.strip()
+    if not candidate:
+        return None
+    try:
+        parsed = _parse_expression(candidate, _build_parse_locals(_build_symbol_map([candidate])))
+    except Exception:
+        return None
+    if getattr(parsed, "is_Symbol", False):
+        return parsed.name
+    return None
+
+
+def _is_identity_equation(equation_text: str, equation_vars: list[str]) -> bool:
+    """Return True when an equation is an always-true identity and carries no proof content."""
+    try:
+        symbol_map = _build_symbol_map(equation_vars)
+        parse_locals = _build_parse_locals(symbol_map)
+        residual = _parse_equation(equation_text, parse_locals)
+    except Exception:
+        return False
+    if residual is None:
+        return False
+    return _proves_zero(residual)
+
+
 def verify_yaml_file(file_path: str) -> str:
     """Verify YAML structure, symbolic proofs, and calculations from a YAML file path."""  # Document the public YAML verification entry point.
     from .check_substitution import is_substitution_correct  # Import substitution checking locally so this new feature stays scoped to this function.
@@ -136,8 +174,10 @@ def verify_yaml_file(file_path: str) -> str:
         if split_equation is None:  # Skip expression-side tracking for strings that are not simple single-equals equations.
             return  # Exit early because there are no individual equation sides to store.
         left_text, right_text = split_equation  # Unpack the left and right equation sides for expression tracking.
-        known_expressions.append({"expression": left_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the left side as a known expression.
-        known_expressions.append({"expression": right_text, "vars": equation_vars, "line": line_number, "source": source_name})  # Store the right side as a known expression.
+        left_symbol = _symbol_name_from_expression(left_text)  # Recover a single-symbol left side when one exists.
+        right_symbol = _symbol_name_from_expression(right_text)  # Recover a single-symbol right side when one exists.
+        known_expressions.append({"expression": left_text, "vars": equation_vars, "line": line_number, "source": source_name, "expected_symbols": {right_symbol} if right_symbol is not None else set()})  # Store the left side with any symbol it proves.
+        known_expressions.append({"expression": right_text, "vars": equation_vars, "line": line_number, "source": source_name, "expected_symbols": {left_symbol} if left_symbol is not None else set()})  # Store the right side with any symbol it proves.
 
     def _normalized_detected_vars(math_expression: str) -> list[str]:  # Normalize auto-detected symbols so optional vars behave like explicit vars lists.
         return [value.strip() for value in extract_variables(math_expression) if value.strip()]  # Trim whitespace and keep extractor order.
@@ -190,6 +230,8 @@ def verify_yaml_file(file_path: str) -> str:
             return f"Error! YAML file is invalid: {reason}"  # Surface the exact validation reason and line number.
         ax_vars = [value.strip() for value in axiom_vars]  # Normalize the explicit or inferred axiom symbol names before storing them.
         ax_equation = axiom_equation.strip()  # Normalize the axiom equation text before storing it.
+        if _is_identity_equation(ax_equation, ax_vars):  # Reject tautologies such as x = x or 1 = 1 because they do not provide a usable mathematical relation.
+            return f"Error! YAML file is invalid: line {validation_line}: equation cannot be an identity"  # Keep degenerate axioms out of the known-equation pool.
         _remember_known_equation(ax_equation, ax_vars, axiom_line, axiom_name)  # Make the validated axiom available to later proofs and calculations.
 
     for top_key, top_value in loaded.items():  # Validate every theorem/proof section after axioms have been collected.
@@ -290,6 +332,8 @@ def verify_yaml_file(file_path: str) -> str:
             elif not is_equation_equal(section_vars, lhs_text, rhs_text):  # Preserve ordinary symbolic-equivalence checking for non-substitution steps.
                 return f"Error! Math proofs are invalid: line {step_line}: symbolic transformation is not equivalent"  # Reject invalid non-substitution proof steps.
             previous_rhs = rhs_text  # Advance the proof chain to the current step result.
+            if _is_identity_equation(rhs_text, section_vars):  # Reject theorem results that collapse to tautologies and can be abused as universal known equations.
+                return f"Error! Math proofs are invalid: line {step_line}: proof step result cannot be an identity"  # Keep identity equations out of later proof chaining.
             _remember_known_equation(rhs_text, section_vars, step_line, top_key)  # Make the newly proven equation available to later sections and calculations.
 
     calculations = loaded.get("calculations")  # Extract the optional calculations block after theorem validation.
@@ -330,6 +374,10 @@ def verify_yaml_file(file_path: str) -> str:
             if not _expression_matches_known(equation.strip(), calc_vars, known_expressions):  # Require the calculation expression to come from a known axiom or theorem side.
                 eq_line = ast_lines["calculations"].get(calc_name, {}).get("equation", calc_line)  # Recover the best available line number for the equation field.
                 return f"Error! Calculations are invalid: line {eq_line}: equation must match an expression from an axiom or theorem"  # Reject calculations based on unknown expressions.
+            allowed_expected_symbols = _expected_symbols_for_expression(equation.strip(), calc_vars, known_expressions)  # Recover the symbols that the matched known equations solve for.
+            if allowed_expected_symbols and expected_symbol.strip() not in allowed_expected_symbols:  # Enforce the expected symbol when the known source expression implies one.
+                sym_line = ast_lines["calculations"].get(calc_name, {}).get("expected_symbol", calc_line)  # Recover the best available line number for the expected_symbol field.
+                return f"Error! Calculations are invalid: line {sym_line}: expected_symbol must match the symbol proven by the equation"  # Reject nonsense or mismatched expected symbols.
             if not is_calculation_correct(calc_vars, values, equation, expected_value, tolerance):  # Reuse the existing numeric calculation checker.
                 eq_line = ast_lines["calculations"].get(calc_name, {}).get("equation", calc_line)  # Recover the best available line number for the equation field.
                 return f"Error! Calculations are invalid: line {eq_line}: numeric evaluation does not satisfy expected value within tolerance"  # Reject incorrect calculation results.
