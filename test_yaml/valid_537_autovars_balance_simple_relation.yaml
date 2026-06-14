@@ -1,0 +1,6 @@
+axioms:
+  base:
+    equation: "sin(x)^2 + cos(y)^2 = 1"
+theorem:
+  equation: |+
+    sin(x)^2 + cos(y)^2 = 1 -> sin(x)^2 + cos(y)^2 - 1 = 0
