@@ -1,0 +1,6 @@
+axioms:
+  base_relation:
+    equation: "x = y"
+squared_relation:
+  equation: |+
+    x = y -> x^2 = y^2
