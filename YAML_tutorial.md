@@ -152,23 +152,33 @@ calculations:
 
 ```yaml
 axioms:
-  kinetic_energy:
-    equation: "K = (1/2)*m*v^2"
-  gravitational_potential_energy:
-    equation: "U = m*g*h"
-  kinetic_gravitational_potential_energy:
-    equation: "E = U + K"
-kinetic_initial:
+  current_limit_relation:
+    equation: "Imax = Vbe/R2"
+  base_current_relation:
+    equation: "Ib = Ic/beta"
+  bias_voltage_relation:
+    equation: "Vr1 = Vs - 2*Vbe"
+  bias_resistor_relation:
+    equation: "R1 = Vr1/Ib"
+sense_resistor_solve:
   equation: |+
-    K = (1/2)*m*v^2 : _i -> K_i = (1/2)*m_i*((v_i)^2)
-gravitational_initial:
-  equation: |+
-    U = m*g*h : _i -> U_i = m_i*g_i*h_i
-energy_initial:
-  equation: |+
-    E = U + K : _i -> E_i = U_i + K_i
-    E_i = U_i + K_i ; U_i = m_i*g_i*h_i -> E_i = K_i + m_i*g_i*h_i
-    E_i = K_i + m_i*g_i*h_i ; K_i = (1/2)*m_i*((v_i)^2) -> E_i = (1/2)*m_i*((v_i)^2) + m_i*g_i*h_i
+    Imax = Vbe/R2 -> Imax*R2 = Vbe
+    Imax*R2 = Vbe -> R2 = Vbe/Imax
+calculations:
+  eval_current_limit:
+    vars: ["Vbe", "R2"]
+    values: [0.6, 30.0]
+    equation: "Vbe/R2"
+    tolerance: 0.000001
+    expected_value: 0.02
+    expected_symbol: "Imax"
+  eval_sense_resistor:
+    vars: ["Vbe", "Imax"]
+    values: [0.6, 0.02]
+    equation: "Vbe/Imax"
+    tolerance: 0.000001
+    expected_value: 30.0
+    expected_symbol: "R2"
 ```
 
 ## What The Verifier Accepts
