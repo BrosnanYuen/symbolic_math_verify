@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "symbolic-math-verify"
-version = "0.1.2"
+version = "0.1.4"
 description = "Symbolic math verification utilities built on SymPy."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,8 +14,8 @@ authors = [
   { name = "Brosnan" }
 ]
 dependencies = [
-  "PyYAML>=6.0",
-  "sympy>=1.12",
+  "PyYAML>=6.0.3",
+  "sympy>=1.14",
 ]
 keywords = ["math", "symbolic", "sympy", "verification", "yaml"]
 classifiers = [
