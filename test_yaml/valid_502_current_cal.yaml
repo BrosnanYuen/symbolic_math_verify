@@ -1,0 +1,13 @@
+axioms:
+  current_limit_relation:
+    equation: "Imax = Vbe/R2"
+  base_current_relation:
+    equation: "Ib = Ic/beta"
+  bias_voltage_relation:
+    equation: "Vr1 = Vs - 2*Vbe"
+  bias_resistor_relation:
+    equation: "R1 = Vr1/Ib"
+sense_resistor_solve:
+  equation: |+
+    Imax = Vbe/R2 -> Imax*R2 = Vbe
+    Imax*R2 = Vbe -> R2 = Vbe/Imax

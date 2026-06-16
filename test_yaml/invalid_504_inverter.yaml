@@ -1,0 +1,25 @@
+axioms:
+  bus_voltage:
+    equation: "Vd = 380.0"
+  modulation_index:
+    equation: "ma = 0.8"
+  phase_voltage:
+    equation: "Vphase = 152.0"
+  line_voltage:
+    equation: "VLL = 263.1"
+  phase_impedance:
+    equation: "Z1 = 10.1"
+  phase_current:
+    equation: "Iphase = 15.0"
+  switching_period:
+    equation: "Tsw_us = 62.5"
+  time_constant:
+    equation: "tau_ms = 10.0"
+calculations:
+  eval_bus_voltage:
+    vars: [] # Invalid because empty
+    values: ["380.0"] # Invalid because empty
+    equation: "380.0"
+    tolerance: 0.1
+    expected_value: 380.0
+    expected_symbol: "Vd"
