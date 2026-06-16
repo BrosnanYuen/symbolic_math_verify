@@ -392,12 +392,12 @@ def verify_yaml_file(file_path: str) -> str:
             tolerance = calc_value["tolerance"]  # Extract the numeric tolerance for result comparison.
             expected_value = calc_value["expected_value"]  # Extract the expected numeric result for validation.
             expected_symbol = calc_value["expected_symbol"]  # Extract the label for the expected computed symbol.
-            if not isinstance(vars_list, list) or not all(isinstance(item, str) for item in vars_list):  # Require calculation vars to be a list of strings.
+            if not isinstance(vars_list, list) or not vars_list or not all(isinstance(item, str) for item in vars_list):  # Require calculation vars to be a non-empty list of strings.
                 vars_line = ast_lines["calculations"].get(calc_name, {}).get("vars", calc_line)  # Recover the best available line number for the vars field.
-                return f"Error! YAML file is invalid: line {vars_line}: calculation vars must be a list of strings"  # Reject malformed calculation vars.
-            if not isinstance(values, list):  # Require calculation values to be a list.
+                return f"Error! YAML file is invalid: line {vars_line}: calculation vars must be a non-empty list of strings"  # Reject malformed or empty calculation vars.
+            if not isinstance(values, list) or not values:  # Require calculation values to be a non-empty list.
                 values_line = ast_lines["calculations"].get(calc_name, {}).get("values", calc_line)  # Recover the best available line number for the values field.
-                return f"Error! YAML file is invalid: line {values_line}: calculation values must be a list"  # Reject malformed calculation values.
+                return f"Error! YAML file is invalid: line {values_line}: calculation values must be a non-empty list"  # Reject malformed or empty calculation values.
             if len(vars_list) != len(values):  # Require the vars and values lists to have matching lengths.
                 values_line = ast_lines["calculations"].get(calc_name, {}).get("values", calc_line)  # Recover the best available line number for the values field.
                 return f"Error! YAML file is invalid: line {values_line}: calculation vars and values length must match"  # Reject mismatched calculation arity.
