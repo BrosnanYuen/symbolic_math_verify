@@ -144,7 +144,7 @@ calculations:
     tolerance: 0.001
     expected_value: 48.0
     expected_symbol: "P"
-    # INVALID: calculations always need vars
+    # INVALID: calculations always need vars and values populated
     # INVALID: vars: omitted
 ```
 
