@@ -1,42 +1,30 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "symbolic-math-verify"
-version = "0.1.4"
-description = "Symbolic math verification utilities built on SymPy."
+name = "symbolic_math_mcp"
+version = "0.1.0"
+description = "FastMCP server for validating symbolic math YAML files with symbolic-math-verify."
 readme = "README.md"
-requires-python = ">=3.10"
-license = "GPL-3.0-only"
-license-files = ["LICENSE"]
+requires-python = ">=3.11"
+license = {text = "MIT"}
 authors = [
-  { name = "Brosnan" }
+  {name = "Brosnan Yuen"}
 ]
 dependencies = [
-  "PyYAML>=6.0.3",
-  "sympy>=1.14",
-]
-keywords = ["math", "symbolic", "sympy", "verification", "yaml"]
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Scientific/Engineering :: Mathematics",
-  "Topic :: Software Development :: Libraries :: Python Modules",
+  "fastmcp>=3.4.2",
+  "symbolic-math-verify>=0.1.4",
 ]
 
-[project.urls]
-Documentation = "https://pypi.org/project/symbolic-math-verify/"
+[project.optional-dependencies]
+dev = []
+
+[project.scripts]
+symbolic-math-mcp = "symbolic_math_mcp.cli:main"
 
 [tool.setuptools]
-include-package-data = false
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-include = ["symbolic_math_verify*"]
+where = ["src"]

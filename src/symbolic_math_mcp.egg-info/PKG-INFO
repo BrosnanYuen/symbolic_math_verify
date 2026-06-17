@@ -1,3 +1,15 @@
+Metadata-Version: 2.4
+Name: symbolic_math_mcp
+Version: 0.1.0
+Summary: FastMCP server for validating symbolic math YAML files with symbolic-math-verify.
+Author: Brosnan Yuen
+License: MIT
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastmcp>=3.4.2
+Requires-Dist: symbolic-math-verify>=0.1.4
+Provides-Extra: dev
+
 # symbolic_math_mcp
 
 `symbolic_math_mcp` is a standalone FastMCP server that validates symbolic math proof files in YAML format.

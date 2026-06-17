@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+src/symbolic_math_mcp/__init__.py
+src/symbolic_math_mcp/cli.py
+src/symbolic_math_mcp/config.py
+src/symbolic_math_mcp/server.py
+src/symbolic_math_mcp/service.py
+src/symbolic_math_mcp.egg-info/PKG-INFO
+src/symbolic_math_mcp.egg-info/SOURCES.txt
+src/symbolic_math_mcp.egg-info/dependency_links.txt
+src/symbolic_math_mcp.egg-info/entry_points.txt
+src/symbolic_math_mcp.egg-info/requires.txt
+src/symbolic_math_mcp.egg-info/top_level.txt
+tests/test_config.py
+tests/test_integration.py
+tests/test_service.py
