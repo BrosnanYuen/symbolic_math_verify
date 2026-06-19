@@ -169,14 +169,14 @@ calculations:
     vars: ["Vbe", "R2"]
     values: [0.6, 30.0]
     equation: "Vbe/R2"
-    tolerance: 0.000001
+    tolerance: 0.001
     expected_value: 0.02
     expected_symbol: "Imax"
   eval_sense_resistor:
     vars: ["Vbe", "Imax"]
     values: [0.6, 0.02]
     equation: "Vbe/Imax"
-    tolerance: 0.000001
+    tolerance: 0.001
     expected_value: 30.0
     expected_symbol: "R2"
 ```
