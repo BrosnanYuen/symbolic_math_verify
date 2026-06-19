@@ -408,6 +408,10 @@ def verify_yaml_file(file_path: str) -> str:
                 sym_line = ast_lines["calculations"].get(calc_name, {}).get("expected_symbol", calc_line)  # Recover the best available line number for the expected_symbol field.
                 return f"Error! YAML file is invalid: line {sym_line}: expected_symbol must be a non-empty string"  # Reject empty expected_symbol labels.
             calc_vars = [value.strip() for value in vars_list]  # Normalize calculation symbol names by trimming whitespace.
+            equation_symbol = _symbol_name_from_expression(equation.strip())  # Detect trivial calculations that only restate the target symbol name.
+            if equation_symbol is not None and equation_symbol == expected_symbol.strip():  # Reject calculations that use the expected symbol itself as the equation.
+                eq_line = ast_lines["calculations"].get(calc_name, {}).get("equation", calc_line)  # Recover the best available line number for the equation field.
+                return f"Error! Calculations are invalid: line {eq_line}: Invalid equation cannot be the same as expected_symbol for calculation"  # Report the requested validation failure.
             if not _expression_matches_known(equation.strip(), calc_vars, known_expressions):  # Require the calculation expression to come from a known axiom or theorem side.
                 eq_line = ast_lines["calculations"].get(calc_name, {}).get("equation", calc_line)  # Recover the best available line number for the equation field.
                 return f"Error! Calculations are invalid: line {eq_line}: equation must match an expression from an axiom or theorem"  # Reject calculations based on unknown expressions.

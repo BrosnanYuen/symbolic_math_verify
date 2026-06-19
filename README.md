@@ -1,187 +1,131 @@
-# symbolic_math_mcp
+# Symbolic Math Verify
 
-`symbolic_math_mcp` is a standalone FastMCP server that validates symbolic math proof files in YAML format.
+Symbolic math verification utilities built on SymPy.
 
-It uses exactly one function from `symbolic-math-verify` for verification:
+This project checks whether equations are equivalent, whether a substitution step is valid, whether a uniform subscript rename is valid, whether a numeric calculation matches an expected value, and whether a YAML proof file is valid.
 
-- `symbolic_math_verify.verify_yaml_file()`
-
-## Features
-
-- exposes one synchronous MCP tool: `check_symbolic_math`
-- exposes one synchronous MCP tool for parallel directory validation: `check_symbolic_math_parallel`
-- supports `stdio://`, `http://`, and `https://` configuration URLs
-- queues requests above `max_requests`
-- enforces a total per-request timeout
-- automatically switches to a free port if the configured HTTP port is already in use
-
-## Requirements
-
-- Python 3.11+
-- `fastmcp>=3.4.2`
-- `symbolic-math-verify>=0.1.4`
+PyPI package: `symbolic-math-verify`
 
 ## Install
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -e .
+pip install symbolic-math-verify
 ```
 
-## Configuration
+Import it as `symbolic_math_verify`.
 
-Default configuration file: [config.json](/home/brosnan/symbolic_math_mcp/symbolic_math_mcp/config.json)
+## Public API
 
-```json
-{
-  "mcp_server_name": "My Symbolic Math MCP Server",
-  "mcp_server_url": "http://localhost:8753",
-  "max_requests": 10,
-  "total_timeout": 600
-}
+```python
+from symbolic_math_verify import extract_variables
+from symbolic_math_verify import is_calculation_correct
+from symbolic_math_verify import is_equation_equal
+from symbolic_math_verify import is_subscript_substitution_correct
+from symbolic_math_verify import is_substitution_correct
+from symbolic_math_verify import verify_yaml_file
 ```
 
-### Notes
+## What It Does
 
-- `stdio://...` runs the server over stdio.
-- `http://...` runs the server over FastMCP's streamable HTTP transport.
-- `https://...` is accepted by the config parser and uses the HTTP transport settings. In practice, TLS is typically terminated by a reverse proxy in front of the process.
+- `is_equation_equal(symbol_list, lhs_equation, rhs_equation) -> bool`
+  Proves whether two equations define the same zero relation.
+- `is_substitution_correct(symbol_list, equation_before, substitute_equation, equation_after) -> bool`
+  Proves whether `equation_after` is a valid substitution result.
+- `is_subscript_substitution_correct(symbol_list, equation_before, subscript, equation_after) -> bool`
+  Proves whether the same suffix such as `_i` was applied consistently to every declared symbol.
+- `is_calculation_correct(symbol_list, symbol_val, equation, expected_value, tolerance) -> bool`
+  Evaluates an expression or equation residual numerically and compares it to an expected value.
+- `extract_variables(math_expression) -> list[str]`
+  Extracts variable names from math-like text while skipping known functions and constants.
+- `verify_yaml_file(file_path) -> str`
+  Validates YAML axioms, proof chains, substitution steps, subscript-substitution steps, and calculations.
 
-## Run
+## Examples
 
-From the project directory:
+Equation equivalence:
 
-```bash
-../.venv/bin/python run_server.py --config config.json
+```python
+from symbolic_math_verify import is_equation_equal
+
+is_equation_equal(["x"], "x + 2 = 5", "x = 3")
+# True
 ```
 
-Or after installation:
+Substitution:
 
-```bash
-symbolic-math-mcp --config config.json
+```python
+from symbolic_math_verify import is_substitution_correct
+
+is_substitution_correct(
+    ["x", "y", "z"],
+    "y = 1/x + 5*z",
+    "x = z^3",
+    "y = 1/(z^3) + 5*z",
+)
+# True
 ```
 
-## Tool API
+Subscript substitution:
 
-### `check_symbolic_math(filename)`
+```python
+from symbolic_math_verify import is_subscript_substitution_correct
 
-- input: absolute path to a `.yaml` symbolic math file
-- behavior: blocks until `verify_yaml_file(filename)` completes or times out
-
-Successful completion:
-
-```json
-{
-  "status": "Tool call completed!",
-  "filename": "proof.yaml",
-  "result": "Math proofs are valid"
-}
+is_subscript_substitution_correct(
+    ["E", "m", "v"],
+    "E = (1/2)*m*(v^2)",
+    "_i",
+    "E_i = (1/2)*m_i*(v_i^2)",
+)
+# True
 ```
 
-Timeout:
+Calculation:
 
-```json
-{
-  "status": "Tool call has timed out!",
-  "filename": "proof.yaml",
-  "result": "TIMEOUT ERROR!"
-}
+```python
+from symbolic_math_verify import is_calculation_correct
+
+is_calculation_correct(
+    ["x", "y", "z"],
+    [0.5, -0.2, 14.0],
+    "x + y^2 + 1/z",
+    0.61142,
+    0.001,
+)
+# True
 ```
 
-File not found:
+Variable extraction:
 
-```json
-{
-  "status": "Tool call cannot find the file based on the filename!",
-  "filename": "proof.yaml",
-  "result": "FILE NOT FOUND!"
-}
+```python
+from symbolic_math_verify import extract_variables
+
+extract_variables("P = I*V ; V = I*R -> P = R*I^2")
+# ['P', 'I', 'V', 'R']
 ```
 
-File read error:
+YAML verification:
 
-```json
-{
-  "status": "Tool call cannot read the file!",
-  "filename": "proof.yaml",
-  "result": "FILE CANNOT BE READ!"
-}
+```python
+from symbolic_math_verify import verify_yaml_file
+
+verify_yaml_file("test_yaml/valid_11_prompt_with_calculation.yaml")
+# "Math proofs are valid"
 ```
 
-Unknown error:
+## YAML Support
 
-```json
-{
-  "status": "Tool call has unknown error!",
-  "filename": "proof.yaml",
-  "result": "UNKNOWN ERROR!"
-}
-```
+`verify_yaml_file()` validates YAML files containing:
 
-### `check_symbolic_math_parallel(dir_path)`
+- `axioms`
+- theorem/proof sections with `->`, `;`, and `:` proof steps
+- optional `calculations`
 
-- input: absolute directory path containing one or more `.yaml` symbolic math files
-- behavior: starts verification for each `.yaml` file in parallel, bounded by `max_requests`, and blocks until all checks finish or the total timeout is exceeded
-- result keys: absolute file paths for each `.yaml` file found in `dir_path`
-- failure behavior: if `dir_path` is missing, not absolute, unreadable, or contains no `.yaml` files, the tool returns the same structured error shape used by `check_symbolic_math`
+For axioms and theorem sections, `vars` may be omitted and will be auto-detected from the math text. For `calculations`, `vars` is required.
 
-Successful completion:
+See [YAML_tutorial.md](/home/brosnan/symbolic_math_verify/symbolic_math_verify/YAML_tutorial.md) for a full YAML proof example and validation rules.
 
-```json
-{
-  "status": "Parallel Tool call completed!",
-  "dir_path": "/abs/path/to/proofs",
-  "result": {
-    "/abs/path/to/proofs/one.yaml": "Math proofs are valid",
-    "/abs/path/to/proofs/two.yaml": "Error! Math proofs are invalid"
-  }
-}
-```
+## Notes
 
-Timeout:
-
-```json
-{
-  "status": "Tool call has timed out!",
-  "filename": "/abs/path/to/proofs",
-  "result": "TIMEOUT ERROR!"
-}
-```
-
-Directory not found or no YAML files:
-
-```json
-{
-  "status": "Tool call cannot find the file based on the filename!",
-  "filename": "/abs/path/to/proofs",
-  "result": "FILE NOT FOUND!"
-}
-```
-
-## Tests
-
-The test suite is intentionally sequential.
-
-Run all tests:
-
-```bash
-PYTHONPATH=src /home/brosnan/symbolic_math_mcp/.venv/bin/python tests/run_tests_sequentially.py
-```
-
-The integration test starts a real stdio MCP server subprocess and validates:
-
-- 5 valid YAML files in [tests_yaml](/home/brosnan/symbolic_math_mcp/symbolic_math_mcp/tests_yaml)
-- 5 invalid YAML files in [tests_yaml](/home/brosnan/symbolic_math_mcp/symbolic_math_mcp/tests_yaml)
-
-## Codex Config
-```
-[mcp_servers.symbolic_math_mcp]
-url = "http://localhost:8753/mcp"
-
-[mcp_servers.symbolic_math_mcp.tools.check_symbolic_math]
-approval_mode = "approve"
-
-[mcp_servers.symbolic_math_mcp.tools.check_symbolic_math_parallel]
-approval_mode = "approve"
-```
+- The checker is conservative: `True` means proven, while `False` means wrong, invalid, ambiguous, or not proven.
+- Equations may be written as `lhs = rhs` or as zero expressions such as `x^2 - 1`.
+- Common Unicode math characters such as `−`, `×`, `÷`, and `π` are normalized before parsing.
