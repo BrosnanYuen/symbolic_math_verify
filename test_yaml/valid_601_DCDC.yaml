@@ -1,0 +1,32 @@
+axioms:
+  source_peak_voltage:
+    equation: "source_peak_voltage = 4.86"
+  source_rms_voltage:
+    equation: "source_rms_voltage = source_peak_voltage / sqrt(2)"
+  source_frequency:
+    equation: "source_frequency = 88"
+  ripple_frequency:
+    equation: "ripple_frequency = 2 * source_frequency"
+  diode_drop:
+    equation: "diode_drop = 0.7"
+  load_resistance:
+    equation: "load_resistance = 250"
+  capacitance:
+    equation: "capacitance = 600e-6"
+  output_peak_voltage:
+    equation: "output_peak_voltage = source_peak_voltage - 2*diode_drop"
+  load_current:
+    equation: "load_current = output_peak_voltage / load_resistance"
+  time_constant:
+    equation: "time_constant = load_resistance * capacitance"
+  ripple_estimate:
+    equation: "ripple_estimate = load_current / (ripple_frequency * capacitance)"
+
+calculations:
+  source_rms_voltage_eval:
+    vars: ["source_peak_voltage"]
+    values: [4.86]
+    equation: "source_peak_voltage / sqrt(2)" #Valid
+    tolerance: 0.01
+    expected_value: 3.44
+    expected_symbol: "source_rms_voltage"  #Valid

@@ -1,0 +1,12 @@
+axioms:
+  bus_voltage:
+    equation: "wire = 442"
+
+calculations:
+  bus_voltage_eval:
+    vars: ["wire"]
+    values: [442]
+    equation: "wire" # Invalid equation cannot be the same as expected_symbol for calculation
+    tolerance: 0.001
+    expected_value: 442
+    expected_symbol: "wire" # Invalid equation cannot be the same as expected_symbol for calculation

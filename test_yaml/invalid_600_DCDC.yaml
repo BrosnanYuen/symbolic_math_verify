@@ -1,0 +1,12 @@
+axioms:
+  bus_voltage:
+    equation: "bus_voltage = 380"
+
+calculations:
+  bus_voltage_eval:
+    vars: ["bus_voltage"]
+    values: [380]
+    equation: "bus_voltage" # Invalid equation cannot be the same as expected_symbol for calculation
+    tolerance: 0.001
+    expected_value: 380
+    expected_symbol: "bus_voltage" # Invalid equation cannot be the same as expected_symbol for calculation

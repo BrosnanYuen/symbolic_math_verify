@@ -1,0 +1,21 @@
+axioms:
+  phase_rms:
+    equation: "phase_rms = phase_peak / sqrt(2)"
+  line_to_line_rms:
+    equation: "line_to_line_rms = sqrt(3) * phase_rms"
+
+calculations:
+  phase_rms_eval:
+    vars: ["phase_peak"]
+    values: [141]
+    equation: "phase_peak / sqrt(2)"
+    tolerance: 0.001
+    expected_value: 99.7020561473
+    expected_symbol: "phase_rms"
+  line_to_line_rms_eval:
+    vars: ["phase_rms"]
+    values: [99.7]
+    equation: "sqrt(3) * phase_rms"
+    tolerance: 0.01
+    expected_value: 172.7043697
+    expected_symbol: "line_to_line_rms"
