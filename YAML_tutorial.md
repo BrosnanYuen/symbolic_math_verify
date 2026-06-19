@@ -150,35 +150,61 @@ calculations:
 
 ## Another simple example
 
+For the upper stage, the comments point to a gain on the order of -R_C/R_E when beta is high, so with 2.4 kΩ and 240 Ω the nominal magnitude is about 10 V/V.
+In dB, 20 * log10(10) = 20 dB, so the stage is a moderate-gain inverter.
+For the lower stage, the 120 Ω emitter resistor is bypassed by 1000 uF, so the AC reactance at 1 kHz is X_C = 1 / (2 * pi * 1000 * 0.001) = 0.159 Ω, which is effectively a short.
+That means the AC gain is controlled mostly by the transistor and collector load, not by emitter degeneration.
+The bypass corner using R = 120 Ω and C = 1000 uF is f_C = 1 / (2 * pi * 120 * 0.001) = 1.33 Hz, so the bypass capacitor is already effective at the 1 kHz test frequency.
+The 10 kΩ output loads mainly provide a measurement point and DC reference rather than setting the small-signal gain.
+
 ```yaml
 axioms:
-  current_limit_relation:
-    equation: "Imax = Vbe/R2"
-  base_current_relation:
-    equation: "Ib = Ic/beta"
-  bias_voltage_relation:
-    equation: "Vr1 = Vs - 2*Vbe"
-  bias_resistor_relation:
-    equation: "R1 = Vr1/Ib"
-sense_resistor_solve:
+  upper_stage_gain_magnitude:
+    equation: "A_mag = R_C/R_E"
+  decibel_relation:
+    equation: "G_dB = 20*ln(A_mag)/ln(10)"
+  capacitor_reactance:
+    equation: "X_C = 1/(2*pi*f*C)"
+  bypass_corner_frequency:
+    equation: "f_corner = 1/(2*pi*R*C)"
+upper_stage_gain_db_expression:
   equation: |+
-    Imax = Vbe/R2 -> Imax*R2 = Vbe
-    Imax*R2 = Vbe -> R2 = Vbe/Imax
+    G_dB = 20*ln(A_mag)/ln(10) ; A_mag = R_C/R_E -> G_dB = 20*ln(R_C/R_E)/ln(10)
+reactance_denominator_product:
+  equation: |+
+    X_C = 1/(2*pi*f*C) -> X_C = 1/(2*pi*C*f)
+corner_frequency_denominator_product:
+  equation: |+
+    f_corner = 1/(2*pi*R*C) -> f_corner = 1/(2*pi*C*R)
 calculations:
-  eval_current_limit:
-    vars: ["Vbe", "R2"]
-    values: [0.6, 30.0]
-    equation: "Vbe/R2"
+  eval_upper_stage_gain_magnitude:
+    vars: ["R_C", "R_E"]
+    values: [2400.0, 240.0]
+    equation: "R_C/R_E"
     tolerance: 0.001
-    expected_value: 0.02
-    expected_symbol: "Imax"
-  eval_sense_resistor:
-    vars: ["Vbe", "Imax"]
-    values: [0.6, 0.02]
-    equation: "Vbe/Imax"
+    expected_value: 10.0
+    expected_symbol: "A_mag"
+  eval_upper_stage_gain_db:
+    vars: ["R_C", "R_E"]
+    values: [2400.0, 240.0]
+    equation: "20*ln(R_C/R_E)/ln(10)"
     tolerance: 0.001
-    expected_value: 30.0
-    expected_symbol: "R2"
+    expected_value: 20.0
+    expected_symbol: "G_dB"
+  eval_bypass_reactance:
+    vars: ["f", "C"]
+    values: [1000.0, 0.001]
+    equation: "1/(2*pi*f*C)"
+    tolerance: 0.001
+    expected_value: 0.15915494309
+    expected_symbol: "X_C"
+  eval_bypass_corner_frequency:
+    vars: ["R", "C"]
+    values: [120.0, 0.001]
+    equation: "1/(2*pi*R*C)"
+    tolerance: 0.001
+    expected_value: 1.32629119243
+    expected_symbol: "f_corner"
 ```
 
 ## What The Verifier Accepts
