@@ -228,6 +228,7 @@ calculations:
 - Calculations based on arbitrary expressions not seen as one side of a known equation
 - Wrong `expected_symbol` values for calculations
 - Explicit `vars` lists with missing or extra symbols
+- DO NOT USE `3E-4` or `3e-4` in equations or calculations, use `0.0003` or `3*(10^(-4))`
 
 ## Practical Advice
 
