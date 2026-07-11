@@ -124,6 +124,31 @@ For axioms and theorem sections, `vars` may be omitted and will be auto-detected
 
 See [YAML_tutorial.md](/home/brosnan/symbolic_math_verify/symbolic_math_verify/YAML_tutorial.md) for a full YAML proof example and validation rules.
 
+## Development
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+```
+
+Run the full test suite in parallel:
+
+```bash
+python tests/run_parallel_unittest.py
+```
+
+Run individual test files:
+
+```bash
+python -m unittest tests/tests_check_calculation.py
+python -m unittest tests/tests_check_substitution.py
+python -m unittest tests/tests_check_util.py
+python -m unittest tests/tests_extract_variables.py
+python -m unittest tests/tests_subscript_substitution.py
+python -m unittest tests/tests_verify_yaml.py
+```
+
 ## Notes
 
 - The checker is conservative: `True` means proven, while `False` means wrong, invalid, ambiguous, or not proven.
