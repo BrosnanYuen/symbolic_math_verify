@@ -1,4 +1,0 @@
-fastmcp>=3.4.2
-symbolic-math-verify>=0.1.4
-
-[dev]

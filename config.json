@@ -1,7 +1,0 @@
-{
-  "mcp_server_name": "My Symbolic Math MCP Server",
-  "mcp_server_url": "http://localhost:8753",
-  "yaml_must_have": ["axioms:","calculations:"],
-  "max_requests": 24,
-  "total_timeout": 6000
-}

@@ -1,2 +1,0 @@
-[console_scripts]
-symbolic-math-mcp = symbolic_math_mcp.cli:main
