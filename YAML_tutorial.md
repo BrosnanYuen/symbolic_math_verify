@@ -228,7 +228,13 @@ calculations:
 - Calculations based on arbitrary expressions not seen as one side of a known equation
 - Wrong `expected_symbol` values for calculations
 - Explicit `vars` lists with missing or extra symbols
-- DO NOT USE `3E-4` or `3e-4` in equations or calculations, use `0.0003` or `3*(10^(-4))` instead
+- DO NOT USE "3E-4" or "3e-4" in YAML string "" equations or calculations. ONLY USE "0.0003" or "3*(10^(-4))" instead for YAML strings
+corner_frequency_denominator_product:
+  equation: |+
+    f_corner = 3E-6         <------- DO NOT USE
+- CAN use "3E-4" or "3e-4" for YAML floats only like
+eval_bypass_corner_frequency:
+  expected_value: 3E-4  <---- CAN USE
 
 ## Practical Advice
 
