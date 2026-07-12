@@ -234,7 +234,7 @@ corner_frequency_denominator_product:
     f_corner = 3E-6         <------- DO NOT USE
 - CAN use "3E-4" or "3e-4" for YAML floats only like
 eval_bypass_corner_frequency:
-  expected_value: 3E-4  <---- CAN USE
+  expected_value: 3E-4      <---- CAN USE
 
 ## Practical Advice
 
