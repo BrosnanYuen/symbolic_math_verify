@@ -1,10 +1,11 @@
 import concurrent.futures
-import unittest
 import hashlib
 import os
+import time
+import unittest
 from pathlib import Path
 
-from symbolic_math_verify.verify_yaml import verify_yaml_file
+from symbolic_math_verify.verify_yaml import _expressions_equal_directly, verify_yaml_file
 
 
 def _verify_yaml_fixture(file_path: str) -> tuple[str, str]:
@@ -69,6 +70,32 @@ class TestVerifyYamlFile(unittest.TestCase):
         }
         self.assertTrue(len(valid_autovars) > 0)
         self.assertTrue(len(invalid_autovars) > 0)
+
+    def test_expression_matching_supports_safe_symbol_instantiation(self):
+        known_expression = "(f^2/(f^2 + f_pL^2))*(f_pH^2/(f^2 + f_pH^2))"
+        instantiated_expression = "(f_L^2/(f_L^2 + f_pL^2))*(f_pH^2/(f_L^2 + f_pH^2))"
+        self.assertTrue(
+            _expressions_equal_directly(
+                instantiated_expression,
+                known_expression,
+                ["f_L", "f_pL", "f_pH", "f"],
+            )
+        )
+        self.assertFalse(
+            _expressions_equal_directly(
+                "(f_L^2/(f_L^2 + f_pL^2))*(f_pH^2/(f_L^2 - f_pH^2))",
+                known_expression,
+                ["f_L", "f_pL", "f_pH", "f"],
+            )
+        )
+
+    def test_instantiated_calculation_yaml_completes_quickly(self):
+        fixture = self.base_dir / "valid_402_bug8_instantiated_calculation.yaml"
+        started = time.monotonic()
+        result = verify_yaml_file(str(fixture))
+        elapsed = time.monotonic() - started
+        self.assertEqual("Math proofs are valid", result)
+        self.assertLess(elapsed, 10.0)
 
 
 if __name__ == "__main__":

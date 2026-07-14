@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import re
 from typing import Any
 
@@ -136,7 +137,7 @@ def _expression_matches_known(candidate: str, candidate_vars: list[str], known_e
     """Return True when candidate expression matches a known expression by symbolic equivalence."""
     for known in known_expressions:
         combined = _union_vars(candidate_vars, known["vars"])
-        if is_equation_equal(combined, f"({candidate}) = ({known['expression']})", "0 = 0"):
+        if _expressions_equal_directly(candidate, known["expression"], combined):
             return True
     return False
 
@@ -146,9 +147,47 @@ def _expected_symbols_for_expression(candidate: str, candidate_vars: list[str], 
     expected_symbols: set[str] = set()
     for known in known_expressions:
         combined = _union_vars(candidate_vars, known["vars"])
-        if is_equation_equal(combined, f"({candidate}) = ({known['expression']})", "0 = 0"):
+        if _expressions_equal_directly(candidate, known["expression"], combined):
             expected_symbols.update(known.get("expected_symbols", ()))
     return expected_symbols
+
+
+def _expressions_equal_directly(candidate: str, known: str, symbol_names: list[str]) -> bool:
+    """Compare two expression sides without invoking equation-solving heuristics.
+
+    Calculation expressions are matched against individual sides of known
+    equations.  They need ordinary expression equality, not the broader
+    equation-relation proof that may solve for every declared symbol.
+    """
+    try:
+        symbol_map = _build_symbol_map(symbol_names)
+        parse_locals = _build_parse_locals(symbol_map)
+        candidate_expr = _parse_expression(candidate, parse_locals)
+        known_expr = _parse_expression(known, parse_locals)
+        # parse_expr evaluates commutative arithmetic, so equivalent forms
+        # such as ``a*b`` and ``b*a`` normally have identical structure.
+        if candidate_expr == known_expr:
+            return True
+
+        # A calculation may evaluate a known formula at a declared symbol,
+        # such as H_squared with f replaced by f_L.  Permit only a complete
+        # one-to-one renaming of source symbols absent from the candidate;
+        # this is structural matching, not equation solving.
+        known_names = {symbol.name for symbol in known_expr.free_symbols}
+        candidate_names = {symbol.name for symbol in candidate_expr.free_symbols}
+        missing_names = sorted(known_names - candidate_names)
+        extra_names = sorted(candidate_names - known_names)
+        if len(missing_names) != len(extra_names):
+            return False
+        known_symbols = [symbol_map[name] for name in missing_names]
+        extra_symbols = [symbol_map[name] for name in extra_names]
+        for replacement_symbols in itertools.permutations(extra_symbols):
+            replacements = dict(zip(known_symbols, replacement_symbols))
+            if known_expr.xreplace(replacements) == candidate_expr:
+                return True
+        return False
+    except Exception:
+        return False
 
 
 def _symbol_name_from_expression(expression_text: str) -> str | None:

@@ -1,0 +1,43 @@
+axioms:
+  low_cutoff_definition:
+    equation: "f_L = 30"
+  high_cutoff_definition:
+    equation: "f_H = 25000"
+  lower_pole_solution:
+    equation: "f_pL = (f_H - f_L - sqrt((f_H - f_L)^2 - 4*f_L*f_H))/2"
+  upper_pole_solution:
+    equation: "f_pH = (f_H - f_L + sqrt((f_H - f_L)^2 - 4*f_L*f_H))/2"
+  high_pass_pole:
+    equation: "f_pL = 1/(2*pi*R_HP*C_HP)"
+  low_pass_pole:
+    equation: "f_pH = 1/(2*pi*R_LP*C_LP)"
+  high_pass_resistance:
+    equation: "R_HP = 1/(2*pi*f_pL*C_HP)"
+  low_pass_resistance:
+    equation: "R_LP = 1/(2*pi*f_pH*C_LP)"
+  center_frequency:
+    equation: "f_0 = sqrt(f_pL*f_pH)"
+  quality_factor:
+    equation: "Q = f_0/(f_H - f_L)"
+  peak_gain:
+    equation: "H_peak = f_pH/(f_pL + f_pH)"
+  magnitude_squared:
+    equation: "H_squared = (f^2/(f^2 + f_pL^2))*(f_pH^2/(f^2 + f_pH^2))"
+  half_power_level:
+    equation: "H_half_squared = H_peak^2/2"
+
+calculations:
+  eval_low_cutoff_magnitude:
+    vars: ["f_L", "f_pL", "f_pH"]
+    values: [30.0, 30.0722603461, 24939.9277396539]
+    equation: "(f_L^2/(f_L^2 + f_pL^2))*(f_pH^2/(f_L^2 + f_pH^2))"
+    tolerance: 0.000001
+    expected_value: 0.4987963896
+    expected_symbol: "H_squared"
+  eval_high_cutoff_magnitude:
+    vars: ["f_H", "f_pL", "f_pH"]
+    values: [25000.0, 30.0722603461, 24939.9277396539]
+    equation: "(f_H^2/(f_H^2 + f_pL^2))*(f_pH^2/(f_H^2 + f_pH^2))"
+    tolerance: 0.000001
+    expected_value: 0.4987963896
+    expected_symbol: "H_squared"
